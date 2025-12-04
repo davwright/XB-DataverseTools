@@ -1,4 +1,4 @@
-function Get-DVData {
+function Get-XbDVData {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][string]$EnvironmentUrl,
@@ -59,7 +59,7 @@ function Get-DVData {
         }
         # Append retrieved records to total result
         $allResults += $response.value
-        Write-Verbose "Page $page: Retrieved $($response.value.Count) records."
+        Write-Verbose "Page ${page}: Retrieved $($response.value.Count) records."
 
         # Get next link if available
         $url = $response.'@odata.nextLink'
