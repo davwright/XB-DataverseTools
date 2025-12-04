@@ -51,14 +51,13 @@ Most functions accept an optional `-AccessToken` parameter. If not provided, the
 ```powershell
 # Option 1: Use Connect-XbDataverse helper function (easiest)
 Install-Module -Name Az.Accounts -Scope CurrentUser
-$envUrl="https://{yourorgname}.crm.dynamics.com"
-$token = Connect-XbDataverse -EnvironmentUrl $envUrl
+$token = Connect-XbDataverse -EnvironmentUrl "https://{yourorgname}.crm.dynamics.com"
 
 # Option 2: Manual authentication with Az.Accounts
 Install-Module -Name Az.Accounts -Scope CurrentUser
 Import-Module Az.Accounts -Force
-Connect-AzAccount -AuthScope $envUrl
-$secureToken = (Get-AzAccessToken -ResourceUrl $envUrl).Token
+Connect-AzAccount -AuthScope "https://{yourorgname}.crm.dynamics.com"
+$secureToken = (Get-AzAccessToken -ResourceUrl "https://{yourorgname}.crm.dynamics.com").Token
 
 # Convert SecureString to plain text for API calls
 $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureToken)
@@ -89,15 +88,6 @@ Get-XbDVData -EnvironmentUrl "https://org.crm4.dynamics.com" -TableName "account
 # Create a new contact
 $new = @{ firstname = "Eva"; lastname = "Holm" }
 New-XbDVRecord -EnvironmentUrl $envUrl -TableName "contacts" -Data $new
-
-# Create a new table with custom primary field
-New-XbDVTable -EnvironmentUrl $envUrl -SchemaName "new_Project" `
-    -DisplayName "Project" -DisplayPluralName "Projects" `
-    -SolutionUniqueName "solution" `
-    -PrimaryNameFieldSchema "new_ProjectCode" `
-    -PrimaryNameFieldDisplayName "Project Code" `
-    -PrimaryNameFieldMaxLength 200 `
-    -PrimaryNameFieldRequiredLevel ApplicationRequired
 
 # Add a Choice field to a custom table
 New-XbDVColumn -EnvironmentUrl $envUrl -TableLogicalName "new_project" -SchemaName "new_Status" `
