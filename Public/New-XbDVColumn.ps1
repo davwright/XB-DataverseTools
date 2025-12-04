@@ -28,8 +28,9 @@ function New-XbDVColumn {
         [ValidateSet("Text","Memo","Integer","Decimal","Boolean","Choice","MultiChoice","Lookup","Customer")]
         [string]$Type,
     
-        [Parameter(HelpMessage = "If set, makes the column required (RequiredLevel = ApplicationRequired)")]
-        [switch]$Required,
+        [Parameter(HelpMessage = "Requirement level for the column (None, Recommended, ApplicationRequired, SystemRequired). Default: None.")]
+        [ValidateSet("None","Recommended","ApplicationRequired","SystemRequired")]
+        [string]$RequiredLevel = "None",
     
         [Parameter(HelpMessage = "Maximum length for text-based fields (Text/Memo). Default: 100.")]
         [ValidateRange(1,1048576)]
@@ -53,7 +54,10 @@ function New-XbDVColumn {
     
         [Parameter(HelpMessage = "One or more target entities for Lookup or Customer fields (e.g., 'account','contact').")]
         [string[]]$LookupTargets,
-    
+
+        [Parameter(HelpMessage = "Unique name of the solution to add this column to (e.g., 'MyCustomSolution'). If not specified, column is added to the default solution.")]
+        [string]$SolutionUniqueName,
+
         [Parameter(HelpMessage = "OAuth 2.0 bearer token. If not provided, assumes the session is authenticated.")]
         [ValidateNotNullOrEmpty()]
         [string]$AccessToken
@@ -87,8 +91,12 @@ function New-XbDVColumn {
     The data type of the column. Supported types:
     - Text, Memo, Integer, Decimal, Boolean, Choice, MultiChoice, Lookup, Customer
 
-.PARAMETER Required
-    If specified, sets RequiredLevel to 'ApplicationRequired'. Otherwise defaults to 'None'.
+.PARAMETER RequiredLevel
+    The requirement level for the column. Options:
+    - None: Field is completely optional (default)
+    - Recommended: Field shows a blue + icon, suggesting users fill it in but not enforced
+    - ApplicationRequired: Field must be filled in before the record can be saved
+    - SystemRequired: Reserved for system fields (rarely used for custom fields)
 
 .PARAMETER MaxLength
     Applicable for Text and Memo fields. Maximum allowed: 4000 for Text, 1M for Memo. Default is 100.
@@ -111,13 +119,19 @@ function New-XbDVColumn {
 .PARAMETER LookupTargets
     For Lookup or Customer fields. One or more entity logical names that this field can reference (e.g., "account", "contact").
 
+.PARAMETER SolutionUniqueName
+    Optional. Unique name of the solution to add this column to during creation.
+    If not specified, the column is added to the default solution (Common Data Services Default Solution).
+    The solution must already exist in the environment.
+    Example: "MyCustomSolution", "CoreComponents"
+
 .PARAMETER AccessToken
     Optional. OAuth 2.0 bearer token. If not provided, the function assumes the session is pre-authenticated.
 
 .EXAMPLE
     New-XbDVColumn -EnvironmentUrl "https://org.crm4.dynamics.com" -TableLogicalName "contact" `
         -SchemaName "new_IndustryCode" -DisplayName "Industry Code" -Description "Code for vertical" `
-        -Type Text -MaxLength 50 -Required
+        -Type Text -MaxLength 50 -RequiredLevel ApplicationRequired
 
 .EXAMPLE
     New-XbDVColumn -EnvironmentUrl $envUrl -TableLogicalName "incident" `
@@ -125,9 +139,22 @@ function New-XbDVColumn {
         -Choices @("Low","Medium","High")
 
 .EXAMPLE
+    New-XbDVColumn -EnvironmentUrl $envUrl -TableLogicalName "account" `
+        -SchemaName "new_Notes" -DisplayName "Internal Notes" -Type Memo `
+        -MaxLength 2000 -RequiredLevel Recommended
+
+.EXAMPLE
     New-XbDVColumn -EnvironmentUrl $envUrl -TableLogicalName "new_caseplan" `
         -SchemaName "new_PrimaryContact" -DisplayName "Primary Contact" `
         -Type Lookup -LookupTargets @("contact")
+
+.EXAMPLE
+    New-XbDVColumn -EnvironmentUrl $envUrl -TableLogicalName "new_inventory" `
+        -SchemaName "new_Location" -DisplayName "Warehouse Location" `
+        -Type Text -MaxLength 100 `
+        -SolutionUniqueName "WarehouseManagement"
+
+    Creates a column and adds it to the "WarehouseManagement" solution.
 
 .INPUTS
     None
@@ -158,11 +185,11 @@ function New-XbDVColumn {
         }
     }
 
-    # Read RequiredLevel value based on the $Required switch
-    $reqLevel = if ($Required) { 
-        @{ Value = "ApplicationRequired"; CanBeChanged = $true; ManagedPropertyLogicalName = "canmodifyrequirementlevelsettings" } 
-    } else {
-        @{ Value = "None"; CanBeChanged = $true; ManagedPropertyLogicalName = "canmodifyrequirementlevelsettings" }
+    # Build RequiredLevel metadata object
+    $reqLevel = @{
+        Value = $RequiredLevel
+        CanBeChanged = $true
+        ManagedPropertyLogicalName = "canmodifyrequirementlevelsettings"
     }
 
     # Build attribute JSON based on selected type
@@ -344,12 +371,16 @@ function New-XbDVColumn {
     $jsonBody = ($attributeMetadata | ConvertTo-Json -Depth 15)
     # HTTP call to create the column on the table
     $url = "$EnvironmentUrl/api/data/v9.2/EntityDefinitions(LogicalName='$TableLogicalName')/Attributes"
-    $headers = @{ 
+    $headers = @{
         Accept = 'application/json; charset=utf-8'
         "Content-Type" = 'application/json; charset=utf-8'
     }
     if ($AccessToken) {
         $headers['Authorization'] = "Bearer $AccessToken"
+    }
+    # Add column to specific solution if specified
+    if ($SolutionUniqueName) {
+        $headers["MSCRM.SolutionUniqueName"] = $SolutionUniqueName
     }
     try {
         Invoke-RestMethod -Method POST -Uri $url -Headers $headers -Body $jsonBody -ErrorAction Stop
@@ -364,7 +395,7 @@ Export-ModuleMember -Function New-XbDVColumn
 # Examples:
 # 1. Add a new required text field "Project Code" (max 50 chars) to custom table 'new_project'
 # New-XbDVColumn -EnvironmentUrl $envUrl -TableLogicalName "new_project" -SchemaName "new_ProjectCode" `
-#    -DisplayName "Project Code" -Description "Unique project code" -Type Text -MaxLength 50 -Required
+#    -DisplayName "Project Code" -Description "Unique project code" -Type Text -MaxLength 50 -RequiredLevel ApplicationRequired
 #
 # 2. Add a Choice field "Priority" with three local option values
 # New-XbDVColumn -EnvironmentUrl $envUrl -TableLogicalName "incident" -SchemaName "new_Priority" `
