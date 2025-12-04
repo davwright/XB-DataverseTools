@@ -14,6 +14,7 @@
         'New-XbDVRecord',
         'Update-XbDVRecord',
         'New-XbDVTable',
+        'Remove-XbDVTable',
         'New-XbDVColumn',
         'Get-XbDVTableMetadata'
     )
