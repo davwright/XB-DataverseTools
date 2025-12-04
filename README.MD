@@ -32,6 +32,7 @@ Import-Module .\XB-DataverseTools\XB-DataverseTools.psd1 -Force
 ## 🔧 Functions
 
 ```powershell
+Connect-XbDataverse          # Authenticate and get an access token for Dataverse
 Get-XbPPEnvironments         # List environments using the Power Platform CLI
 Get-XbDVData                 # Retrieve records from any Dataverse table (with pagination & retry)
 New-XbDVRecord               # Create a record in a Dataverse table
@@ -48,10 +49,14 @@ Get-XbDVTableMetadata        # Retrieve metadata (field names, types, requiremen
 Most functions accept an optional `-AccessToken` parameter. If not provided, they rely on Windows integrated authentication or cached credentials. If you've authenticated using `pac auth create`, those cached credentials may be used automatically, though explicit OAuth tokens (shown below) are more reliable.
 
 ```powershell
-# Option 1: Get an OAuth token using Az.Accounts (recommended)
+# Option 1: Use Connect-XbDataverse helper function (easiest)
+Install-Module -Name Az.Accounts -Scope CurrentUser
+$token = Connect-XbDataverse -EnvironmentUrl "https://{yourorgname}.crm.dynamics.com"
+
+# Option 2: Manual authentication with Az.Accounts
 Install-Module -Name Az.Accounts -Scope CurrentUser
 Import-Module Az.Accounts -Force
-Connect-AzAccount
+Connect-AzAccount -AuthScope "https://{yourorgname}.crm.dynamics.com"
 $secureToken = (Get-AzAccessToken -ResourceUrl "https://{yourorgname}.crm.dynamics.com").Token
 
 # Convert SecureString to plain text for API calls
@@ -59,7 +64,7 @@ $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureToke
 $token = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
 [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
 
-# Option 2: Use Power Platform CLI authentication
+# Option 3: Use Power Platform CLI authentication
 # pac auth create --environment https://{yourorgname}.crm.dynamics.com
 # Then call functions without -AccessToken parameter
 ```
