@@ -108,6 +108,25 @@ function Connect-XbDataverse {
             Write-Verbose "Could not parse token expiration: $($_.Exception.Message)"
         }
 
+        # Verify token by testing connection to Dataverse
+        Write-Host "Verifying token with Dataverse..." -ForegroundColor Cyan
+        $headers = @{
+            'Authorization' = "Bearer $token"
+            'Accept' = 'application/json'
+            'OData-MaxVersion' = '4.0'
+            'OData-Version' = '4.0'
+        }
+        $testUrl = "$EnvironmentUrl/api/data/v9.2/WhoAmI"
+        try {
+            $whoAmIResponse = Invoke-RestMethod -Method GET -Uri $testUrl -Headers $headers -ErrorAction Stop
+            Write-Host "Token verified successfully!" -ForegroundColor Green
+            Write-Host "  User ID: $($whoAmIResponse.UserId)" -ForegroundColor Cyan
+            Write-Host "  Organization ID: $($whoAmIResponse.OrganizationId)" -ForegroundColor Cyan
+        }
+        catch {
+            Write-Warning "Token verification failed: $($_.Exception.Message)"
+            Write-Warning "The token was obtained but may not have valid permissions for this Dataverse environment."
+        }
         return $token
     }
     catch {
@@ -121,7 +140,7 @@ function Connect-XbDataverse {
             $errMsg += "2. Restart PowerShell after updating`n"
             $errMsg += "3. Or use Azure CLI instead:`n"
             $errMsg += "   az login`n"
-            $errMsg += "   `$token = az account get-access-token --resource '$EnvironmentUrl' --query accessToken -o tsv`n"
+         #   $errMsg += "   $token = az account get-access-token --resource '$EnvironmentUrl' --query accessToken -o tsv`n"
             $errMsg += "`nOriginal error: $($_.Exception.Message)"
         }
 
