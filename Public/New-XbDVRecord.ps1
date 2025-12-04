@@ -1,4 +1,4 @@
-function New-DVRecord {
+function New-XbDVRecord {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, Position = 0, HelpMessage = "The base URL of the Dataverse environment, e.g., 'https://org.crm4.dynamics.com'")]
