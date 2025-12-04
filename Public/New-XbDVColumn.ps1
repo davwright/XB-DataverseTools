@@ -261,12 +261,12 @@ function New-XbDVColumn {
                 DisplayName      = New-Label $DisplayName
                 Description      = New-Label $Description
                 RequiredLevel    = $reqLevel
-                AttributeType    = "Boolean"
+                AttributeType    = "BooleanType"
                 OptionSet        = @{
                     TrueOption   = @{ Value = 1; Label = New-Label $TrueLabel }
                     FalseOption  = @{ Value = 0; Label = New-Label $FalseLabel }
                     DefaultValue = 0
-                    OptionSetType = "Boolean"
+                    OptionSetType = "BooleanType"
                 }
             }
         }
