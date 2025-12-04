@@ -8,7 +8,6 @@
     Description       = 'Enterprise Dataverse Automation Toolkit for PowerShell'
     PowerShellVersion = '5.1'
     CompatiblePSEditions = @('Desktop', 'Core')
-    RequiredModules   = @('PSScriptAnalyzer', 'PlatyPS', 'Pester')
     FunctionsToExport = @(
         'Get-XbPPEnvironments',
         'Get-XbDVData',
@@ -21,9 +20,11 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = @()
-    Tags              = @('Dataverse', 'PowerPlatform', 'CDS', 'REST', 'Metadata')
-    ProjectUri        = 'https://github.com/kristianbuch/XB-DataverseTools'
     HelpInfoUri       = 'https://github.com/kristianbuch/XB-DataverseTools'
     PrivateData       = @{
+        PSData = @{
+            Tags = @('Dataverse', 'PowerPlatform', 'CDS', 'REST', 'Metadata')
+            ProjectUri = 'https://github.com/kristianbuch/XB-DataverseTools'
+        }
     }
 }
