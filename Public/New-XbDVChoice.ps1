@@ -19,8 +19,7 @@ function New-XbDVChoice {
         [Parameter(Mandatory = $true, Position = 3, HelpMessage = "Semicolon-separated list of choice options (e.g., 'Option1;Option2;Option3')")]
         [ValidateNotNullOrEmpty()]
         [string]$Choices,
-    
-        [Parameter()]
+
         [Parameter(HelpMessage = "Optional description of the choice shown in UI and metadata.")]
         [string]$Description = "",
     
@@ -53,9 +52,6 @@ function New-XbDVChoice {
 .PARAMETER Choices
     Semicolon-separated list of choice options (e.g., "car;bike;truck").
     Values will be automatically assigned starting from 1 and incrementing.
-
-.PARAMETER Description
-    Optional. A description of the choice used in metadata and solution explorers.
 
 .PARAMETER SolutionUniqueName
     Optional. Unique name of the solution to add this choice to during creation.
@@ -160,7 +156,6 @@ function New-XbDVChoice {
     }
 
     $jsonBody = $entity | ConvertTo-Json -Depth 15
-    Write-Host $jsonBody
     $headers = @{
         Accept = 'application/json; charset=utf-8'
         "Content-Type" = 'application/json; charset=utf-8'
@@ -176,9 +171,17 @@ function New-XbDVChoice {
     $url = "$EnvironmentUrl/api/data/v9.2/GlobalOptionSetDefinitions"
     try {
         Invoke-RestMethod -Method POST -Uri $url -Headers $headers -Body $jsonBody -ErrorAction Stop
-        Write-Host "Dataverse global choice '$DisplayName' created (SchemaName: $SchemaName)."
+        $successMessage = "Dataverse global choice '$DisplayName' created (SchemaName: $SchemaName)"
+        if ($SolutionUniqueName) {
+            $successMessage += " in solution '$SolutionUniqueName'"
+        }
+        Write-Host "$successMessage."
     }
     catch {
+        $errorDetails = $_.ErrorDetails.Message
+        if ($errorDetails) {
+            Write-Host "Error Details: $errorDetails" -ForegroundColor Red
+        }
         Throw "Could not create choice '$SchemaName'. Error: $($_.Exception.Message)"
     }
 }
