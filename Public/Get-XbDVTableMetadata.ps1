@@ -45,6 +45,7 @@ function Get-XbDVTableMetadata {
     }
     return $fields
 }
+Export-ModuleMember -Function Get-XbDVTableMetadata
 
 # Example: Retrieve metadata for the 'contact' table and display selected fields
 # $contactFields = Get-DVTableMetadata -EnvironmentUrl $environments[0].EnvironmentUrl -TableLogicalName "contact"

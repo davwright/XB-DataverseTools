@@ -105,8 +105,7 @@ function New-XbDVRecord {
         Throw "Could not create new $TableName record. Error: $errMsg"
     }
 }
-
-
+Export-ModuleMember -Function New-XbDVRecord
 
 # Example: Create a new contact and then update its last name
 # $newContact = @{

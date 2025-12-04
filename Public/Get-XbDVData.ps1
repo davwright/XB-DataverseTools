@@ -69,6 +69,7 @@ function Get-XbDVData {
     Write-Verbose "Total records retrieved: $($allResults.Count)"
     return $allResults
 }
+Export-ModuleMember -Function Get-XbDVData
 
 # Example: Retrieve all account records in batches of 1000 rows
 # $accounts = Get-DVData -EnvironmentUrl "https://org.crm4.dynamics.com" -TableName "accounts" -BatchSize 1000

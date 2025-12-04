@@ -82,6 +82,7 @@ function Get-XbPPEnvironments {
     }
     return $environments
 }
+Export-ModuleMember -Function Get-XbPPEnvironments
 
 # Example: Retrieve environments and save result to 'environments.json'
 # $environments = Get-PPEnvironments -OutPath ".\environments.json" -OutputFormat JSON
