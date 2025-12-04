@@ -90,6 +90,15 @@ Get-XbDVData -EnvironmentUrl "https://org.crm4.dynamics.com" -TableName "account
 $new = @{ firstname = "Eva"; lastname = "Holm" }
 New-XbDVRecord -EnvironmentUrl $envUrl -TableName "contacts" -Data $new
 
+# Create a new table with custom primary field
+New-XbDVTable -EnvironmentUrl $envUrl -SchemaName "new_Project" `
+    -DisplayName "Project" -DisplayPluralName "Projects" `
+    -SolutionUniqueName "solution" `
+    -PrimaryNameFieldSchema "new_ProjectCode" `
+    -PrimaryNameFieldDisplayName "Project Code" `
+    -PrimaryNameFieldMaxLength 200 `
+    -PrimaryNameFieldRequiredLevel ApplicationRequired
+
 # Add a Choice field to a custom table
 New-XbDVColumn -EnvironmentUrl $envUrl -TableLogicalName "new_project" -SchemaName "new_Status" `
     -DisplayName "Status" -Type Choice -Choices @("Planned","Active","Completed")
