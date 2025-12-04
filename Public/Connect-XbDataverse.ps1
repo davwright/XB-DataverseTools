@@ -3,7 +3,6 @@ function Connect-XbDataverse {
     param(
         [Parameter(Mandatory = $true, Position = 0, HelpMessage = "The base URL of the Dataverse environment, e.g., 'https://org.crm4.dynamics.com'")]
         [Alias('Url', 'OrgUrl')]
-        [ValidatePattern('^https:\/\/[\w-]+\.crm\d*\.dynamics\.com$')]
         [ValidateNotNullOrEmpty()]
         [string]$EnvironmentUrl
     )
@@ -49,14 +48,42 @@ function Connect-XbDataverse {
     https://learn.microsoft.com/en-us/powershell/module/az.accounts/
 #>
 
+    # Validate EnvironmentUrl format
+    if ($EnvironmentUrl -notmatch '^https:\/\/[\w-]+\.crm\d*\.dynamics\.com\/?$') {
+        Write-Host ""
+        Write-Host "Invalid Environment URL" -ForegroundColor Red
+        Write-Host "-----------------------" -ForegroundColor Red
+        Write-Host ""
+        Write-Host "The URL '$EnvironmentUrl' is not a valid Dataverse environment URL." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "Expected format:" -ForegroundColor Cyan
+        Write-Host "  https://orgname.crm.dynamics.com" -ForegroundColor White
+        Write-Host "  https://orgname.crm4.dynamics.com" -ForegroundColor White
+        Write-Host "  https://orgname.crm11.dynamics.com" -ForegroundColor White
+        Write-Host ""
+        Throw "Invalid EnvironmentUrl format. Please provide a valid Dataverse environment URL."
+    }
+
     # Check if Az.Accounts is available
     try {
         if (-not (Get-Module -ListAvailable -Name Az.Accounts)) {
-            Throw "Az.Accounts module is not installed. Run: Install-Module -Name Az.Accounts -Scope CurrentUser"
+            Write-Host ""
+            Write-Host "Missing Required Module" -ForegroundColor Red
+            Write-Host "-----------------------" -ForegroundColor Red
+            Write-Host ""
+            Write-Host "The Az.Accounts module is required but not installed." -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host "To install, run:" -ForegroundColor Cyan
+            Write-Host "  Install-Module -Name Az.Accounts -Scope CurrentUser" -ForegroundColor Green
+            Write-Host ""
+            Throw "Az.Accounts module is not installed."
         }
     }
     catch {
-        Throw "Failed to check for Az.Accounts module: $($_.Exception.Message)"
+        if ($_.Exception.Message -notlike "*Az.Accounts module is not installed*") {
+            Throw "Failed to check for Az.Accounts module: $($_.Exception.Message)"
+        }
+        throw
     }
 
     # Import Az.Accounts if not already loaded
@@ -64,19 +91,35 @@ function Connect-XbDataverse {
         if (-not (Get-Module -Name Az.Accounts)) {
             Import-Module Az.Accounts -ErrorAction Stop
         }
-    
     }
     catch {
         $errMsg = $_.Exception.Message
         if ($errMsg -like "*SerializationSettings*" -or $errMsg -like "*ResourceManagementClient*") {
-            $errMsg = "Az.Accounts module version conflict detected.`n`n"
-            $errMsg += "To fix this issue, try one of these solutions:`n"
-            $errMsg += "1. Update Az modules: Update-Module Az.Accounts -Force`n"
-            $errMsg += "2. Restart PowerShell after updating`n"
-            $errMsg += "3. Or use Azure CLI instead:`n"
-            $errMsg += "   az login`n"
-            $errMsg += "`nOriginal error: $($_.Exception.Message)"
+             Write-Host ""
+            Write-Host "Module Version Conflict" -ForegroundColor Red
+            Write-Host "-----------------------" -ForegroundColor Red
+            Write-Host ""
+            Write-Host "Az.Accounts module version conflict detected." -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host "To fix this issue, try:" -ForegroundColor Cyan
+            Write-Host "  1. Update-Module Az.Accounts -Force" -ForegroundColor Green 
+            Write-Host "  2. Restart PowerShell" -ForegroundColor Green
+            Write-Host ""
+            Write-Host "Or use Azure CLI instead:" -ForegroundColor Cyan
+            Write-Host "  az login" -ForegroundColor Green
+            Write-Host ""
+            Write-Host "Error details: $($_.Exception.Message)" -ForegroundColor DarkGray
+            Write-Host ""
+            Throw "Az.Accounts module version conflict."
         }
+        Write-Host ""
+        Write-Host "Module Import Failed" -ForegroundColor Red
+        Write-Host "-----------------------" -ForegroundColor Red
+        Write-Host ""
+        Write-Host "Failed to import Az.Accounts module." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "Error: $errMsg" -ForegroundColor DarkGray
+        Write-Host ""
         Throw "Failed to import Az.Accounts module: $errMsg"
     }
 
@@ -86,11 +129,50 @@ function Connect-XbDataverse {
     try {
         $azContext = Connect-AzAccount -AuthScope $EnvironmentUrl -ErrorAction Stop
         if (-not $azContext) {
-            Throw "Failed to connect to Azure. Authentication was cancelled or failed."
+            Write-Host ""
+            Write-Host "Authentication Cancelled" -ForegroundColor Red
+            Write-Host "------------------------" -ForegroundColor Red
+            Write-Host ""
+            Write-Host "Azure authentication was cancelled or failed." -ForegroundColor Yellow
+            Write-Host ""
+            Throw "Authentication was cancelled."
         }
     }
     catch {
-        Throw "Azure authentication failed: $($_.Exception.Message)"
+        $errMsg = $_.Exception.Message
+
+        # Check for Az module version conflict during authentication
+        if ($errMsg -like "*SerializationSettings*" -or $errMsg -like "*ResourceManagementClient*") {
+            Write-Host ""
+            Write-Host "Module Version Conflict" -ForegroundColor Red
+            Write-Host "-----------------------" -ForegroundColor Red
+            Write-Host ""
+            Write-Host "Az.Accounts module version conflict detected during authentication." -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host "To fix this issue, try:" -ForegroundColor Cyan
+            Write-Host "  1. Update-Module Az.Accounts -Force" -ForegroundColor Green
+            Write-Host "  2. Restart PowerShell" -ForegroundColor Green
+            Write-Host ""
+            Write-Host "Or use Azure CLI instead:" -ForegroundColor Cyan
+            Write-Host "  az login" -ForegroundColor Green
+            Write-Host ""
+            Write-Host "Error details: $errMsg" -ForegroundColor DarkGray
+            Write-Host ""
+            Throw "Az.Accounts module version conflict."
+        }
+
+        if ($errMsg -notlike "*Authentication was cancelled*") {
+            Write-Host ""
+            Write-Host "Authentication Failed" -ForegroundColor Red
+            Write-Host "---------------------" -ForegroundColor Red
+            Write-Host ""
+            Write-Host "Failed to authenticate to Azure." -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host "Error: $errMsg" -ForegroundColor DarkGray
+            Write-Host ""
+            Throw "Azure authentication failed: $errMsg"
+        }
+        throw
     }
 
     Write-Host "Retrieving access token for $EnvironmentUrl..." -ForegroundColor Cyan
