@@ -85,6 +85,19 @@ function Connect-XbDataverse {
     }
     catch {
         $errMsg = $_.Exception.Message
+
+        # Check for known Az module version conflicts
+        if ($errMsg -like "*SerializationSettings*" -or $errMsg -like "*ResourceManagementClient*") {
+            $errMsg = "Az.Accounts module version conflict detected.`n`n"
+            $errMsg += "To fix this issue, try one of these solutions:`n"
+            $errMsg += "1. Update Az modules: Update-Module Az.Accounts -Force`n"
+            $errMsg += "2. Restart PowerShell after updating`n"
+            $errMsg += "3. Or use Azure CLI instead:`n"
+            $errMsg += "   az login`n"
+            $errMsg += "   `$token = az account get-access-token --resource '$EnvironmentUrl' --query accessToken -o tsv`n"
+            $errMsg += "`nOriginal error: $($_.Exception.Message)"
+        }
+
         Throw "Authentication failed. Error: $errMsg"
     }
 }
