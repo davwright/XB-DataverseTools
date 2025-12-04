@@ -100,7 +100,9 @@ function Remove-XbDVTable {
             # Delete the table using MetadataId
             $deleteUrl = "$EnvironmentUrl/api/data/v9.2/EntityDefinitions($metadataId)"
 
+            Write-Host "Deleting table '$schemaName'..." -NoNewline
             Invoke-RestMethod -Method DELETE -Uri $deleteUrl -Headers $headers -ErrorAction Stop | Out-Null
+            Write-Host " Done." -ForegroundColor Green
 
             return "Table '$schemaName' ($TableLogicalName) deleted successfully."
         }
@@ -121,6 +123,16 @@ function Remove-XbDVTable {
                 $errMsg += " | Details: $responseContent"
             } else {
                 $errMsg += " | HTTP $statusCode $statusDesc"
+            }
+
+            # Provide helpful guidance for authentication errors
+            if ($statusCode -eq 401) {
+                $errMsg += "`n`nAuthentication failed. To get a valid access token, run:`n"
+                $errMsg += "  `$secureToken = (Get-AzAccessToken -ResourceUrl '$EnvironmentUrl').Token`n"
+                $errMsg += "  `$BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR(`$secureToken)`n"
+                $errMsg += "  `$token = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto(`$BSTR)`n"
+                $errMsg += "  [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR(`$BSTR)`n"
+                $errMsg += "Then retry with: -AccessToken `$token"
             }
         }
         Throw "Could not delete table '$TableLogicalName'. Error: $errMsg"
