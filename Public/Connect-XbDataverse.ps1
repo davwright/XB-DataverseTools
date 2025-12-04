@@ -81,6 +81,33 @@ function Connect-XbDataverse {
 
         Write-Host "Successfully authenticated to $EnvironmentUrl" -ForegroundColor Green
 
+        # Parse JWT token to get expiration time
+        try {
+            $tokenParts = $token.Split('.')
+            if ($tokenParts.Count -ge 2) {
+                # Decode the payload (second part of JWT)
+                $payload = $tokenParts[1]
+                # Add padding if needed for Base64 decoding
+                $padding = '=' * ((4 - ($payload.Length % 4)) % 4)
+                $payloadJson = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($payload + $padding))
+                $tokenData = $payloadJson | ConvertFrom-Json
+
+                if ($tokenData.exp) {
+                    # Convert Unix timestamp to DateTime
+                    $epoch = [DateTime]::new(1970, 1, 1, 0, 0, 0, [DateTimeKind]::Utc)
+                    $expirationUtc = $epoch.AddSeconds($tokenData.exp)
+                    $expirationLocal = $expirationUtc.ToLocalTime()
+                    $timeUntilExpiry = $expirationUtc - [DateTime]::UtcNow
+
+                    Write-Host "Token expires: $expirationLocal (in $([Math]::Floor($timeUntilExpiry.TotalMinutes)) minutes)" -ForegroundColor Cyan
+                }
+            }
+        }
+        catch {
+            # If token parsing fails, continue anyway
+            Write-Verbose "Could not parse token expiration: $($_.Exception.Message)"
+        }
+
         return $token
     }
     catch {
