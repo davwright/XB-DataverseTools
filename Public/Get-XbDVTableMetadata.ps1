@@ -1,4 +1,4 @@
-function Get-DVTableMetadata {
+function Get-XbDVTableMetadata {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][string]$EnvironmentUrl,

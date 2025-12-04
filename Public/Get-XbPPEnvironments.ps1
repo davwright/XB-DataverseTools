@@ -1,4 +1,4 @@
-function Get-PPEnvironments {
+function Get-XbPPEnvironments {
     [CmdletBinding()]
     param(
         [string]$OutPath,               # Path to output file (optional)
