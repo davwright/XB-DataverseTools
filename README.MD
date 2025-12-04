@@ -42,11 +42,13 @@ New-XbDVColumn               # Add a custom column to an existing table
 Get-XbDVTableMetadata        # Retrieve metadata (field names, types, requirements, etc.)
 ```
 
-## 🧪 Examples
 
-### Authentication
+## 🔐 Authentication
+
+Most functions accept an optional `-AccessToken` parameter. If not provided, they rely on Windows integrated authentication or cached credentials. If you've authenticated using `pac auth create`, those cached credentials may be used automatically, though explicit OAuth tokens (shown below) are more reliable.
+
 ```powershell
-# Get an OAuth token using Az.Accounts
+# Option 1: Get an OAuth token using Az.Accounts (recommended)
 Install-Module -Name Az.Accounts -Scope CurrentUser
 Import-Module Az.Accounts -Force
 Connect-AzAccount
@@ -56,7 +58,12 @@ $secureToken = (Get-AzAccessToken -ResourceUrl "https://{yourorgname}.crm.dynami
 $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureToken)
 $token = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
 [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+
+# Option 2: Use Power Platform CLI authentication
+# pac auth create --environment https://{yourorgname}.crm.dynamics.com
+# Then call functions without -AccessToken parameter
 ```
+## 🧪 Examples
 
 ### Basic Operations
 ```powershell
