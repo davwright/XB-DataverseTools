@@ -44,6 +44,21 @@ Get-XbDVTableMetadata        # Retrieve metadata (field names, types, requiremen
 
 ## 🧪 Examples
 
+### Authentication
+```powershell
+# Get an OAuth token using Az.Accounts
+Install-Module -Name Az.Accounts -Scope CurrentUser
+Import-Module Az.Accounts -Force
+Connect-AzAccount
+$secureToken = (Get-AzAccessToken -ResourceUrl "https://{yourorgname}.crm.dynamics.com").Token
+
+# Convert SecureString to plain text for API calls
+$BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureToken)
+$token = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+[System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+```
+
+### Basic Operations
 ```powershell
 # Get all accounts from a Dataverse environment
 Get-XbDVData -EnvironmentUrl "https://org.crm4.dynamics.com" -TableName "accounts"
@@ -55,6 +70,9 @@ New-XbDVRecord -EnvironmentUrl $envUrl -TableName "contacts" -Data $new
 # Add a Choice field to a custom table
 New-XbDVColumn -EnvironmentUrl $envUrl -TableLogicalName "new_project" -SchemaName "new_Status" `
     -DisplayName "Status" -Type Choice -Choices @("Planned","Active","Completed")
+
+# Delete a custom table
+Remove-XbDVTable -EnvironmentUrl $envUrl -TableLogicalName "new_oldtable" -AccessToken $token
 
 # List all Power Platform environments
 Get-XbPPEnvironments -OutPath ".\envs.json" -OutputFormat JSON
