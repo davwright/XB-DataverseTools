@@ -4,7 +4,7 @@ A professional PowerShell module for managing Microsoft Dataverse environments u
 
 ## ✨ Features
 
-- Create, update, delete, and query Dataverse **records**, **tables**, and **columns**
+- Create, update, delete, and query D$envUataverse **records**, **tables**, and **columns**
 - Retrieve full **metadata** for tables and fields
 - Auto-generate base64-safe **schema names**
 - Robust **retry logic** and **throttling** handling for API calls
@@ -51,7 +51,8 @@ Most functions accept an optional `-AccessToken` parameter. If not provided, the
 ```powershell
 # Option 1: Use Connect-XbDataverse helper function (easiest)
 Install-Module -Name Az.Accounts -Scope CurrentUser
-$token = Connect-XbDataverse -EnvironmentUrl "https://{yourorgname}.crm.dynamics.com"
+$envUrl="https://{yourorgname}.crm.dynamics.com"
+$token = Connect-XbDataverse -EnvironmentUrl $envUrl
 
 # Option 2: Manual authentication with Az.Accounts
 Install-Module -Name Az.Accounts -Scope CurrentUser
