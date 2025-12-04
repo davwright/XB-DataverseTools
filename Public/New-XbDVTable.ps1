@@ -62,7 +62,10 @@ function New-XbDVTable {
     
         [Parameter(HelpMessage = "Enable activities (e.g., tasks, emails) for this table.")]
         [switch]$EnableActivities,
-    
+
+        [Parameter(HelpMessage = "Unique name of the solution to add this table to (e.g., 'MyCustomSolution'). If not specified, table is added to the default solution.")]
+        [string]$SolutionUniqueName,
+
         [Parameter(HelpMessage = "OAuth 2.0 bearer token. Optional if session is pre-authenticated.")]
         [ValidateNotNullOrEmpty()]
         [string]$AccessToken
@@ -142,6 +145,12 @@ function New-XbDVTable {
 .PARAMETER EnableActivities
     Enables activity tracking (e.g., emails, tasks) on the table.
 
+.PARAMETER SolutionUniqueName
+    Optional. Unique name of the solution to add this table to during creation.
+    If not specified, the table is added to the default solution (Common Data Services Default Solution).
+    The solution must already exist in the environment.
+    Example: "MyCustomSolution", "CoreComponents"
+
 .PARAMETER AccessToken
     Optional. OAuth 2.0 bearer token for authorization. If not specified, assumes existing auth context.
 
@@ -178,6 +187,15 @@ function New-XbDVTable {
     and limited to 50 characters. Without these parameters, the primary field would default to
     "new_ProductName" with display name "Name" and 100 character length.
 
+.EXAMPLE
+    New-XbDVTable -EnvironmentUrl $envUrl -SchemaName "new_inventory" `
+        -DisplayName "Inventory Item" -DisplayPluralName "Inventory Items" `
+        -SolutionUniqueName "WarehouseManagement" `
+        -EnableAuditing -EnableNotes
+
+    Creates a table and adds it to the "WarehouseManagement" solution during creation.
+    The solution must already exist in the environment.
+
 .OUTPUTS
     None. Writes confirmation to host or throws error on failure.
 
@@ -203,6 +221,12 @@ function New-XbDVTable {
     To customize the primary name field, specify these parameters when creating the table:
     -PrimaryNameFieldSchema, -PrimaryNameFieldDisplayName, -PrimaryNameFieldMaxLength,
     -PrimaryNameFieldRequiredLevel
+
+    SOLUTION ASSIGNMENT:
+    Tables can be added to a specific solution during creation using the -SolutionUniqueName parameter.
+    If not specified, the table is added to the "Default Solution" (Common Data Services Default Solution).
+    The solution must already exist before creating the table.
+    You can also add tables to solutions after creation using the Dataverse UI or APIs.
 
 .LINK
     https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/create-entity
@@ -302,15 +326,17 @@ function New-XbDVTable {
     }
 
     $jsonBody = $entity | ConvertTo-Json -Depth 15
-    $headers = @{ 
+    $headers = @{
         Accept = 'application/json; charset=utf-8'
         "Content-Type" = 'application/json; charset=utf-8'
     }
     if ($AccessToken) {
         $headers['Authorization'] = "Bearer $AccessToken"
     }
-    # Use MSCRM.SolutionUniqueName header if the table should be created inside a specific solution (optional)
-    # $headers["MSCRM.SolutionUniqueName"] = "<solution_unique_name>"
+    # Add table to specific solution if specified
+    if ($SolutionUniqueName) {
+        $headers["MSCRM.SolutionUniqueName"] = $SolutionUniqueName
+    }
 
     $url = "$EnvironmentUrl/api/data/v9.2/EntityDefinitions"
     try {
