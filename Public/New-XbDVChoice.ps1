@@ -7,19 +7,14 @@ function New-XbDVChoice {
         [ValidateNotNullOrEmpty()]
         [string]$EnvironmentUrl,
     
-        [Parameter(Mandatory = $true, Position = 1, HelpMessage = "Logical schema name for the choice, including prefix (e.g., 'new_CustomEntity')")]
+        [Parameter(Mandatory = $true, Position = 1, HelpMessage = "Logical schema name for the choice, including prefix (e.g., 'new_VehicleType')")]
         [ValidatePattern('^[a-zA-Z0-9_]+_[a-zA-Z0-9_]+$')]
         [ValidateNotNullOrEmpty()]
         [string]$SchemaName,
-    
-        [Parameter(Mandatory = $true, Position = 2, HelpMessage = "Singular display name of the choice (e.g., 'Project')")]
+
+        [Parameter(Mandatory = $true, Position = 2, HelpMessage = "Display name of the choice (e.g., 'Vehicle Type')")]
         [ValidateNotNullOrEmpty()]
         [string]$DisplayName,
-
-   
-        [Parameter(Mandatory = $true, Position = 3, HelpMessage = "Plural display name of the choice (e.g., 'Projects')")]
-        [ValidateNotNullOrEmpty()]
-        [string]$DisplayPluralName,
 
         [Parameter(Mandatory = $true, Position = 3, HelpMessage = "Semicolon-separated list of choice options (e.g., 'Option1;Option2;Option3')")]
         [ValidateNotNullOrEmpty()]
@@ -39,77 +34,32 @@ function New-XbDVChoice {
     
 <#
 .SYNOPSIS
-    Creates a new choice (global option set) in Microsoft Dataverse with configurable metadata.
+    Creates a new global choice (option set) in Microsoft Dataverse.
 
 .DESCRIPTION
-    Provisions a new choice (global option set) in a Dataverse environment using the Web API.
-    Allows specification of schema name, display names, description, and solution assignment.    
-
+    Provisions a new global choice (option set) in a Dataverse environment using the Web API.
+    A global choice is a reusable picklist that can be used across multiple tables and columns.
+    Options are automatically assigned incrementing values starting from 1.
 
 .PARAMETER EnvironmentUrl
     The base URL of the Dataverse environment, e.g., "https://org.crm4.dynamics.com".
 
 .PARAMETER SchemaName
-    Logical name (SchemaName) of the choice to create, including prefix (e.g., "new_Project").
+    Logical name (SchemaName) of the choice to create, including prefix (e.g., "new_VehicleType").
 
 .PARAMETER DisplayName
-    Singular display name of the choice, shown in model-driven apps and solutions.
+    Display name of the choice, shown in model-driven apps and solutions.
 
-.PARAMETER DisplayPluralName
-    Plural display name of the choice (e.g., "Projects").
+.PARAMETER Choices
+    Semicolon-separated list of choice options (e.g., "car;bike;truck").
+    Values will be automatically assigned starting from 1 and incrementing.
 
 .PARAMETER Description
-    Optional. A description of the table used in metadata and solution explorers.
-
-.PARAMETER PrimaryNameFieldSchema
-    Optional. SchemaName of the primary name field.
-    Default: {TableSchemaName}Name (e.g., if table is "new_Project", this becomes "new_ProjectName")
-    IMPORTANT: The primary name field is the main identifier for records and cannot be changed after table creation.
-
-.PARAMETER PrimaryNameFieldDisplayName
-    Optional. Display name for the primary name field shown in the UI.
-    Default: "Name"
-    Example: "Project Name", "Case Title", "Contact Name"
-
-.PARAMETER PrimaryNameFieldDescription
-    Optional. Description for the primary name field shown in metadata.
-    Default: "Primary name for {DisplayName}"
-
-.PARAMETER PrimaryNameFieldMaxLength
-    Maximum length for the primary name field. Range 1-4000. Default is 100.
-
-.PARAMETER PrimaryNameFieldRequiredLevel
-    Requirement level for the primary name field. Options:
-    - None: Field is optional (default)
-    - Recommended: Field shows a blue + icon, suggesting users fill it in
-    - ApplicationRequired: Field must be filled in before the record can be saved
-
-.PARAMETER OwnershipType
-    Ownership model for the table. Options:
-    - UserOwned (default): records owned by users/teams
-    - OrganizationOwned: records not owned by individuals
-
-.PARAMETER IsActivityTable
-    Create an Activity table instead of a standard entity. Activity tables appear in timelines.
-
-.PARAMETER EnableAuditing
-    Enables auditing on the table. Default is disabled.
-
-.PARAMETER EnableDuplicateDetection
-    Enables duplicate detection on the table. Default is disabled.
-
-.PARAMETER EnableOffline
-    Makes the table available offline (for mobile clients). Default is disabled.
-
-.PARAMETER EnableNotes
-    Enables the Notes (attachments) feature on the table.
-
-.PARAMETER EnableActivities
-    Enables activity tracking (e.g., emails, tasks) on the table.
+    Optional. A description of the choice used in metadata and solution explorers.
 
 .PARAMETER SolutionUniqueName
-    Optional. Unique name of the solution to add this table to during creation.
-    If not specified, the table is added to the default solution (Common Data Services Default Solution).
+    Optional. Unique name of the solution to add this choice to during creation.
+    If not specified, the choice is added to the default solution (Common Data Services Default Solution).
     The solution must already exist in the environment.
     Example: "MyCustomSolution", "CoreComponents"
 
@@ -117,46 +67,24 @@ function New-XbDVChoice {
     Optional. OAuth 2.0 bearer token for authorization. If not specified, assumes existing auth context.
 
 .EXAMPLE
-    New-XbDVTable -EnvironmentUrl "https://org.crm4.dynamics.com" -SchemaName "new_Project" `
-        -DisplayName "Project" -DisplayPluralName "Projects" -Description "Project tracking table" `
-        -EnableNotes -EnableAuditing
+    New-XbDVChoice -EnvironmentUrl "https://org.crm4.dynamics.com" -SchemaName "new_VehicleType" `
+        -DisplayName "Vehicle Type" -Choices "car;bike;truck" `
+        -Description "Types of vehicles"
+
+    Creates a global choice with three options: car (1), bike (2), truck (3).
 
 .EXAMPLE
-    New-XbDVTable -EnvironmentUrl $envUrl -SchemaName "custom_caseplan" `
-        -DisplayName "Case Plan" -DisplayPluralName "Case Plans" -EnableActivities -EnableOffline
+    New-XbDVChoice -EnvironmentUrl $envUrl -SchemaName "new_Priority" `
+        -DisplayName "Priority Level" -Choices "Low;Medium;High;Critical"
+
+    Creates a priority choice with four options with values 1-4.
 
 .EXAMPLE
-    New-XbDVTable -EnvironmentUrl $envUrl -SchemaName "new_task" `
-        -DisplayName "Custom Task" -DisplayPluralName "Custom Tasks" `
-        -PrimaryNameFieldMaxLength 200 -PrimaryNameFieldRequiredLevel ApplicationRequired `
-        -EnableAuditing
+    New-XbDVChoice -EnvironmentUrl $envUrl -SchemaName "custom_Status" `
+        -DisplayName "Project Status" -Choices "Not Started;In Progress;On Hold;Completed;Cancelled" `
+        -SolutionUniqueName "ProjectManagement"
 
-.EXAMPLE
-    New-XbDVTable -EnvironmentUrl $envUrl -SchemaName "new_customactivity" `
-        -DisplayName "Custom Activity" -DisplayPluralName "Custom Activities" `
-        -IsActivityTable -EnableActivities
-
-.EXAMPLE
-    New-XbDVTable -EnvironmentUrl $envUrl -SchemaName "new_product" `
-        -DisplayName "Product" -DisplayPluralName "Products" `
-        -PrimaryNameFieldSchema "new_ProductCode" `
-        -PrimaryNameFieldDisplayName "Product Code" `
-        -PrimaryNameFieldDescription "Unique identifier for the product" `
-        -PrimaryNameFieldMaxLength 50 `
-        -PrimaryNameFieldRequiredLevel ApplicationRequired
-
-    Creates a table with a customized primary name field called "Product Code" that is required
-    and limited to 50 characters. Without these parameters, the primary field would default to
-    "new_ProductName" with display name "Name" and 100 character length.
-
-.EXAMPLE
-    New-XbDVTable -EnvironmentUrl $envUrl -SchemaName "new_inventory" `
-        -DisplayName "Inventory Item" -DisplayPluralName "Inventory Items" `
-        -SolutionUniqueName "WarehouseManagement" `
-        -EnableAuditing -EnableNotes
-
-    Creates a table and adds it to the "WarehouseManagement" solution during creation.
-    The solution must already exist in the environment.
+    Creates a status choice and adds it to the "ProjectManagement" solution during creation.
 
 .OUTPUTS
     None. Writes confirmation to host or throws error on failure.
@@ -169,29 +97,22 @@ function New-XbDVChoice {
     License     : CC BY-NC-ND 4.0
     Copyright   : (c) 2025 - Kristian Holm Buch. All Rights Reserved.
 
-    PRIMARY NAME FIELD:
-    Every Dataverse table must have exactly one primary name field (text column) that serves as the
-    main identifier for records. This field is set when creating the table and CANNOT be changed later.
+    GLOBAL CHOICE (OPTION SET):
+    A global choice is a reusable picklist that can be shared across multiple tables and columns.
+    Once created, you can reference it when creating choice columns on any table.
 
-    Defaults (if parameters not specified):
-    - SchemaName: {TableSchemaName}Name (e.g., "new_Project" → "new_ProjectName")
-    - DisplayName: "Name"
-    - Description: "Primary name for {DisplayName}"
-    - MaxLength: 100 characters
-    - RequiredLevel: None (optional)
-
-    To customize the primary name field, specify these parameters when creating the table:
-    -PrimaryNameFieldSchema, -PrimaryNameFieldDisplayName, -PrimaryNameFieldMaxLength,
-    -PrimaryNameFieldRequiredLevel
+    OPTION VALUES:
+    Option values are automatically assigned starting from 1 and incrementing for each option.
+    For example, "car;bike;truck" becomes: car=1, bike=2, truck=3.
 
     SOLUTION ASSIGNMENT:
-    Tables can be added to a specific solution during creation using the -SolutionUniqueName parameter.
-    If not specified, the table is added to the "Default Solution" (Common Data Services Default Solution).
-    The solution must already exist before creating the table.
-    You can also add tables to solutions after creation using the Dataverse UI or APIs.
+    Choices can be added to a specific solution during creation using the -SolutionUniqueName parameter.
+    If not specified, the choice is added to the "Default Solution" (Common Data Services Default Solution).
+    The solution must already exist before creating the choice.
+    You can also add choices to solutions after creation using the Dataverse UI or APIs.
 
 .LINK
-    https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/create-entity
+    https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/create-update-optionsets
 #>
 
     # Parse semicolon-separated choices and build Options array
@@ -213,38 +134,29 @@ function New-XbDVChoice {
         $value++
     }
 
-    # Build JSON body for the new choice (PicklistAttributeMetadata)
+    # Build JSON body for the new global choice (OptionSetMetadata)
     $entity = [ordered]@{
-        "Options" = $optionsArray          
-        "@odata.type"             = "Microsoft.Dynamics.CRM.PicklistAttributeMetadata"
-        "AttributeType"           = "Picklist"
-        "AttributeTypeName"       = @{
-            "Value" = "PicklistType"
-        }
-        "SourceTypeMask"          = 0
-        "GlobalOptionSet@odata.bind" ="/GlobalOptionSetDefinitions(00aa00aa-bb11-cc22-dd33-44ee44ee44ee)"
-        Description               = @{
-            "@odata.type" = "Microsoft.Dynamics.CRM.Label"
+        "@odata.type" = "Microsoft.Dynamics.CRM.OptionSetMetadata"
+        "Options"     = $optionsArray
+        "Name"        = $SchemaName
+        "DisplayName" = @{
+            "@odata.type"     = "Microsoft.Dynamics.CRM.Label"
             "LocalizedLabels" = @(@{
                 "@odata.type" = "Microsoft.Dynamics.CRM.LocalizedLabel"
-                Label         = $Description
-                LanguageCode  = 1033
+                "Label"       = $DisplayName
+                "LanguageCode" = 1033
             })
         }
-        DisplayName               = @{
-            "@odata.type" = "Microsoft.Dynamics.CRM.Label"
+        "Description"  = @{
+            "@odata.type"     = "Microsoft.Dynamics.CRM.Label"
             "LocalizedLabels" = @(@{
                 "@odata.type" = "Microsoft.Dynamics.CRM.LocalizedLabel"
-                Label         = $DisplayName
-                LanguageCode  = 1033
-                "IsManaged"   = false
+                "Label"       = $Description
+                "LanguageCode" = 1033
             })
-        "RequiredLevel"          = @{
-            "Value" = "None"
-            "CanBeChanged" = $false
-            "ManagedPropertyLogicalName" = "canmodifyrequirementlevelsettings"
         }
-        SchemaName                = $SchemaName
+        "OptionSetType" = "Picklist"
+        "IsGlobal"      = $true
     }
 
     $jsonBody = $entity | ConvertTo-Json -Depth 15
@@ -261,10 +173,10 @@ function New-XbDVChoice {
         $headers["MSCRM.SolutionUniqueName"] = $SolutionUniqueName
     }
 
-    $url = "$EnvironmentUrl/api/data/v9.2/EntityDefinitions"
+    $url = "$EnvironmentUrl/api/data/v9.2/GlobalOptionSetDefinitions"
     try {
         Invoke-RestMethod -Method POST -Uri $url -Headers $headers -Body $jsonBody -ErrorAction Stop
-        Write-Host "Dataverse table '$DisplayName' created (SchemaName: $SchemaName)."
+        Write-Host "Dataverse global choice '$DisplayName' created (SchemaName: $SchemaName)."
     }
     catch {
         Throw "Could not create choice '$SchemaName'. Error: $($_.Exception.Message)"
@@ -272,8 +184,7 @@ function New-XbDVChoice {
 }
 Export-ModuleMember -Function New-XbDVChoice
 
-# Example: Create a new custom table "Project" (user-owned) with notes and auditing enabled
-# New-XbDVTable -EnvironmentUrl $envUrl -SchemaName "new_Project" -DisplayName "Project" `
-#    -DisplayPluralName "Projects" -Description "Table for managing projects" `
-#    -PrimaryNameFieldMaxLength 200 -PrimaryNameFieldRequiredLevel ApplicationRequired `
-#    -EnableNotes -EnableAuditing -EnableDuplicateDetection
+# Example: Create a new global choice for vehicle types
+# New-XbDVChoice -EnvironmentUrl $envUrl -SchemaName "new_VehicleType" `
+#    -DisplayName "Vehicle Type" -Choices "car;bike;truck" `
+#    -Description "Types of vehicles in the fleet"
