@@ -4,7 +4,7 @@ A professional PowerShell module for managing Microsoft Dataverse environments u
 
 ## ✨ Features
 
-- Create, update, and query Dataverse **records**, **tables**, and **columns**
+- Create, update, delete, and query Dataverse **records**, **tables**, and **columns**
 - Retrieve full **metadata** for tables and fields
 - Auto-generate base64-safe **schema names**
 - Robust **retry logic** and **throttling** handling for API calls
@@ -37,6 +37,7 @@ Get-XbDVData                 # Retrieve records from any Dataverse table (with p
 New-XbDVRecord               # Create a record in a Dataverse table
 Update-XbDVRecord            # Update a specific record by GUID
 New-XbDVTable                # Provision a custom table (EntityMetadata)
+Remove-XbDVTable             # Delete a custom table and all its data
 New-XbDVColumn               # Add a custom column to an existing table
 Get-XbDVTableMetadata        # Retrieve metadata (field names, types, requirements, etc.)
 ```
