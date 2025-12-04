@@ -1,14 +1,14 @@
-function New-DVTable {
+function New-XbDVTable {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, Position = 0, HelpMessage = "The base URL of the Dataverse environment, e.g., 'https://org.crm4.dynamics.com'")]
         [Alias('Url', 'OrgUrl')]
-        [ValidatePattern('^https:\/\/[\w-]+\.crm\d*\.dynamics\.com$')]
+        [ValidatePattern('^https:\/\/[\w-]+\.crm\d*\.dynamics\.com\/?$')]
         [ValidateNotNullOrEmpty()]
         [string]$EnvironmentUrl,
     
         [Parameter(Mandatory = $true, Position = 1, HelpMessage = "Logical schema name for the table, including prefix (e.g., 'new_CustomEntity')")]
-        [ValidatePattern('^[a-zA-Z0-9_]+\_[a-zA-Z0-9_]+$')]
+        [ValidatePattern('^[a-zA-Z0-9_]+_[a-zA-Z0-9_]+$')]
         [ValidateNotNullOrEmpty()]
         [string]$SchemaName,
     
@@ -24,7 +24,7 @@ function New-DVTable {
         [string]$Description = "",
     
         [Parameter(HelpMessage = "SchemaName of the primary name field. If not set, defaults to <SchemaName>Name.")]
-        [ValidatePattern('^$|^[a-zA-Z0-9_]+\_[a-zA-Z0-9_]+$')]
+        [ValidatePattern('^$|^[a-zA-Z0-9_]+_[a-zA-Z0-9_]+$')]
         [string]$PrimaryNameFieldSchema = "",
     
         [Parameter(HelpMessage = "Display name of the primary name field. If not set, defaults to 'Name'.")]
@@ -250,7 +250,7 @@ function New-DVTable {
         Throw "Could not create table '$SchemaName'. Error: $($_.Exception.Message)"
     }
 }
-Export-ModuleMember -Function New-DVTable 
+Export-ModuleMember -Function New-XbDVTable 
 
 # Example: Create a new custom table "Project" (user-owned) with notes and auditing enabled
 # New-DVTable -EnvironmentUrl $envUrl -SchemaName "new_Project" -DisplayName "Project" `
