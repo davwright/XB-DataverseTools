@@ -17,6 +17,7 @@
         'New-XbDVTable',
         'Remove-XbDVTable',
         'New-XbDVColumn',
+        'New-XbDVChoice',
         'Get-XbDVTableMetadata'
     )
     CmdletsToExport   = @()
