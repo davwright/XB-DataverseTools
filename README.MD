@@ -68,6 +68,16 @@ $token = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
 # pac auth create --environment https://{yourorgname}.crm.dynamics.com
 # Then call functions without -AccessToken parameter
 ```
+
+### Troubleshooting Authentication
+
+If you encounter `SerializationSettings` or `ResourceManagementClient` errors with Az.Accounts, update the module:
+
+```powershell
+Update-Module Az.Accounts -Force
+```
+
+Then restart PowerShell and try again.
 ## 🧪 Examples
 
 ### Basic Operations
