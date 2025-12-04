@@ -13,7 +13,7 @@ function New-XbDVColumn {
         [string]$TableLogicalName,
     
         [Parameter(Mandatory = $true, HelpMessage = "SchemaName for the new column (with prefix, e.g., 'new_FieldName')")]
-        [ValidatePattern('^[a-zA-Z0-9_]+\_[a-zA-Z0-9_]+$')]
+        [ValidatePattern('^[a-zA-Z0-9_]+_[a-zA-Z0-9_]+$')]
         [ValidateNotNullOrEmpty()]
         [string]$SchemaName,
     
@@ -359,7 +359,7 @@ function New-XbDVColumn {
         Throw "Could not create column '$SchemaName' on $TableLogicalName. Error: $($_.Exception.Message)"
     }
 }
-Export-ModuleMember -Function New-XbDVColumn -Force
+Export-ModuleMember -Function New-XbDVColumn
 
 # Examples:
 # 1. Add a new required text field "Project Code" (max 50 chars) to custom table 'new_project'
