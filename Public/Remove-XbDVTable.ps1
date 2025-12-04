@@ -7,7 +7,7 @@ function Remove-XbDVTable {
         [ValidateNotNullOrEmpty()]
         [string]$EnvironmentUrl,
 
-        [Parameter(Mandatory = $true, Position = 1, HelpMessage = "Logical name of the table to delete (e.g., 'evo_dummy')")]
+        [Parameter(Mandatory = $true, Position = 1, HelpMessage = "Logical name of the table to delete (e.g., 'new_customtable')")]
         [ValidateNotNullOrEmpty()]
         [string]$TableLogicalName,
 
@@ -46,17 +46,17 @@ function Remove-XbDVTable {
     Skip the confirmation prompt and delete immediately.
 
 .EXAMPLE
-    Remove-XbDVTable -EnvironmentUrl "https://org.crm4.dynamics.com" -TableLogicalName "evo_dummy" -AccessToken $token
+    Remove-XbDVTable -EnvironmentUrl "https://org.crm4.dynamics.com" -TableLogicalName "new_customtable" -AccessToken $token
 
-    Deletes the "evo_dummy" table after prompting for confirmation.
-
-.EXAMPLE
-    Remove-XbDVTable -EnvironmentUrl $envUrl -TableLogicalName "evo_dummy" -AccessToken $token -Force
-
-    Deletes the "evo_dummy" table without prompting for confirmation.
+    Deletes the "new_customtable" table after prompting for confirmation.
 
 .EXAMPLE
-    Remove-XbDVTable -EnvironmentUrl $envUrl -TableLogicalName "evo_dummy" -AccessToken $token -WhatIf
+    Remove-XbDVTable -EnvironmentUrl $envUrl -TableLogicalName "new_customtable" -AccessToken $token -Force
+
+    Deletes the "new_customtable" table without prompting for confirmation.
+
+.EXAMPLE
+    Remove-XbDVTable -EnvironmentUrl $envUrl -TableLogicalName "new_customtable" -AccessToken $token -WhatIf
 
     Shows what would happen without actually deleting the table.
 
