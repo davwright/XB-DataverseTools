@@ -119,9 +119,17 @@ function Connect-XbDataverse {
         $testUrl = "$EnvironmentUrl/api/data/v9.2/WhoAmI"
         try {
             $whoAmIResponse = Invoke-RestMethod -Method GET -Uri $testUrl -Headers $headers -ErrorAction Stop
+
+            # Get organization details
+            $orgUrl = "$EnvironmentUrl/api/data/v9.2/organizations($($whoAmIResponse.OrganizationId))?`$select=name,friendlyname"
+            $orgResponse = Invoke-RestMethod -Method GET -Uri $orgUrl -Headers $headers -ErrorAction SilentlyContinue
+
             Write-Host "Token verified successfully!" -ForegroundColor Green
             Write-Host "  User ID: $($whoAmIResponse.UserId)" -ForegroundColor Cyan
             Write-Host "  Organization ID: $($whoAmIResponse.OrganizationId)" -ForegroundColor Cyan
+            if ($orgResponse) {
+                Write-Host "  Environment: $($orgResponse.friendlyname)" -ForegroundColor Cyan
+            }
         }
         catch {
             Write-Warning "Token verification failed: $($_.Exception.Message)"
