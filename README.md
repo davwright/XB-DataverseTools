@@ -4,7 +4,7 @@ A professional PowerShell module for managing Microsoft Dataverse environments u
 
 ## ✨ Features
 
-- Create, update, delete, and query D$envUataverse **records**, **tables**, and **columns**
+- Create, update, delete, and query Dataverse **records**, **tables**, and **columns**
 - Retrieve full **metadata** for tables and fields
 - Auto-generate base64-safe **schema names**
 - Robust **retry logic** and **throttling** handling for API calls
