@@ -194,13 +194,31 @@ function New-XbDVChoice {
     https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/create-entity
 #>
 
-    # Set default values for primary name field if not specified
+    # Parse semicolon-separated choices and build Options array
+    $choiceLabels = $Choices -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
 
-    # Build JSON body for the new table (EntityMetadata)
+    $optionsArray = @()
+    $value = 1
+    foreach ($label in $choiceLabels) {
+        $optionsArray += @{
+            "Value" = $value
+            "Label" = @{
+                "@odata.type" = "Microsoft.Dynamics.CRM.Label"
+                "LocalizedLabels" = @(@{
+                    "Label"        = $label
+                    "LanguageCode" = 1033
+                })
+            }
+        }
+        $value++
+    }
+
+    # Build JSON body for the new choice (PicklistAttributeMetadata)
     $entity = [ordered]@{
+        "Options" = $optionsArray          
         "@odata.type"             = "Microsoft.Dynamics.CRM.PicklistAttributeMetadata"
         "AttributeType"           = "Picklist"
-        "AttributeTypeName":      = @{
+        "AttributeTypeName"       = @{
             "Value" = "PicklistType"
         }
         "SourceTypeMask"          = 0
@@ -221,10 +239,10 @@ function New-XbDVChoice {
                 LanguageCode  = 1033
                 "IsManaged"   = false
             })
-        "RequiredLevel":         ={
+        "RequiredLevel"          = @{
             "Value" = "None"
-            "CanBeChanged" = false,
-            "ManagedPropertyLogicalName"=  "canmodifyrequirementlevelsettings"
+            "CanBeChanged" = $false
+            "ManagedPropertyLogicalName" = "canmodifyrequirementlevelsettings"
         }
         SchemaName                = $SchemaName
     }
