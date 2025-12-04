@@ -4,7 +4,7 @@ A professional PowerShell module for managing Microsoft Dataverse environments u
 
 ## ✨ Features
 
-- Create, update, delete, and query Dataverse **records**, **tables**, and **columns**
+- Create, update, delete, and query Dataverse **records**, **tables**, **columns**, and **global choices**
 - Retrieve full **metadata** for tables and fields
 - Auto-generate base64-safe **schema names**
 - Robust **retry logic** and **throttling** handling for API calls
@@ -40,6 +40,7 @@ Update-XbDVRecord            # Update a specific record by GUID
 New-XbDVTable                # Provision a custom table (EntityMetadata)
 Remove-XbDVTable             # Delete a custom table and all its data
 New-XbDVColumn               # Add a custom column to an existing table
+New-XbDVChoice               # Create a global choice (option set) with multiple options
 Get-XbDVTableMetadata        # Retrieve metadata (field names, types, requirements, etc.)
 ```
 
@@ -88,6 +89,10 @@ Get-XbDVData -EnvironmentUrl "https://org.crm4.dynamics.com" -TableName "account
 # Create a new contact
 $new = @{ firstname = "Eva"; lastname = "Holm" }
 New-XbDVRecord -EnvironmentUrl $envUrl -TableName "contacts" -Data $new
+
+# Create a global choice (reusable across multiple tables)
+New-XbDVChoice -EnvironmentUrl $envUrl -SchemaName "new_VehicleType" `
+    -DisplayName "Vehicle Type" -Choices "car;bike;truck" -Description "Types of vehicles"
 
 # Add a Choice field to a custom table
 New-XbDVColumn -EnvironmentUrl $envUrl -TableLogicalName "new_project" -SchemaName "new_Status" `
