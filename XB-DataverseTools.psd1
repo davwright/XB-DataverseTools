@@ -9,6 +9,7 @@
     PowerShellVersion = '5.1'
     CompatiblePSEditions = @('Desktop', 'Core')
     FunctionsToExport = @(
+        'Connect-XbDataverse',
         'Get-XbPPEnvironments',
         'Get-XbDVData',
         'New-XbDVRecord',
