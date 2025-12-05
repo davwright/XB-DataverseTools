@@ -3,7 +3,7 @@ function New-XbDVColumn {
     param(
         [Parameter(Mandatory = $true, Position = 0, HelpMessage = "The base URL of the Dataverse environment, e.g., 'https://org.crm4.dynamics.com'")]
         [Alias('Url', 'OrgUrl')]
-        [ValidatePattern('^https:\/\/[\w-]+\.crm\d*\.dynamics\.com$')]
+        [ValidatePattern('^https:\/\/[\w-]+\.crm\d*\.dynamics\.com\/?$')]
         [ValidateNotNullOrEmpty()]
         [string]$EnvironmentUrl,
     
@@ -192,6 +192,7 @@ function New-XbDVColumn {
         ManagedPropertyLogicalName = "canmodifyrequirementlevelsettings"
     }
 
+    $url = "$EnvironmentUrl/api/data/v9.2/EntityDefinitions(LogicalName='$TableLogicalName')/Attributes"
     # Build attribute JSON based on selected type
     $attributeMetadata = @{}
     switch ($Type) {
@@ -364,14 +365,51 @@ function New-XbDVColumn {
                 Throw "LookupTargets must be specified for the Lookup column."
             }
             $attributeMetadata = @{
-                "@odata.type"    = "Microsoft.Dynamics.CRM.LookupAttributeMetadata"
+                "@odata.type"    = "Microsoft.Dynamics.CRM.OneToManyRelationshipMetadata"
                 SchemaName       = $SchemaName
+                AssociatedMenuConfiguration = @{
+                    Behavior = "UseCollectionName"
+                    Group    = "Details"
+                    Label    = New-Label $DisplayName
+                    Order    = 10000
+                }
+                CascadeConfiguration = @{
+                    Assign     = "Cascade"
+                    Delete     = "Cascade"
+                    Merge      = "Cascade"
+                    Reparent   = "Cascade"
+                    Share      = "Cascade"
+                    Unshare    = "Cascade"
+                }
+                ReferencedAttribute = $Lookup + "id"
+                ReferencedEntity = $Lookup
+                ReferencingEntity = $TableLogicalName
+                Lookup       = @{AttributeType = "Lookup" 
+                                 AtrributeTypeName = @{Value="LookupType"}}
                 DisplayName      = New-Label $DisplayName
                 Description      = New-Label $Description
                 RequiredLevel    = $reqLevel
                 AttributeType    = "Lookup"
                 Targets          = $LookupTargets
             }
+            $url = "$EnvironmentUrl/api/data/v9.2/RelationshipDefinitions"
+        }
+        "Polymorphic" {
+            # polymorphic Lookup field (reference other tables)
+            if (-not $ReferencedTables -or $ReferencedTables.Count -eq 0) {
+                Throw "ReferencedTables must be specified for the Polymorphic column."
+            }
+            $attributeMetadata = @{
+                "@odata.type"    = "Microsoft.Dynamics.CRM.LookupAttributeMetadata"
+                SchemaName       = "$TableLogicalName_" + $Lookup.Substring(4)+"_$SchemaName"
+                DisplayName      = New-Label $DisplayName
+                Description      = New-Label $Description
+                RequiredLevel    = $reqLevel
+                AttributeType    = "Lookup"
+                OneToManyRelationships = $ReferencedTables
+            }
+            #Polymorphic lookup creation uses a different endpoint
+            $url = "$EnvironmentUrl/api/data/v9.2/CreatePolymorphicLookupAttribute"
         }
         "Customer" {
             # Customer lookup field (special type typically referencing Account/Contact)
@@ -392,6 +430,7 @@ function New-XbDVColumn {
 
     # Convert metadata hashtable to JSON
     $jsonBody = ($attributeMetadata | ConvertTo-Json -Depth 15)
+    Write-Host $jsonBody
     # HTTP call to create the column on the table
     $url = "$EnvironmentUrl/api/data/v9.2/EntityDefinitions(LogicalName='$TableLogicalName')/Attributes"
     $headers = @{
