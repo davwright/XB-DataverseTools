@@ -18,6 +18,7 @@
         'Remove-XbDVTable',
         'New-XbDVColumn',
         'New-XbDVChoice',
+        'New-XbDVPolymorphicLookup',
         'Get-XbDVTableMetadata'
     )
     CmdletsToExport   = @()
