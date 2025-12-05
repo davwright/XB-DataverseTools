@@ -24,8 +24,8 @@ function New-XbDVColumn {
         [Parameter(HelpMessage = "Optional description for the field shown in metadata and UI")]
         [string]$Description = "",
     
-        [Parameter(Mandatory = $true, HelpMessage = "Type of the new field (Text, Memo, Integer, Decimal, Boolean, etc.)")]
-        [ValidateSet("Text","Memo","Integer","Decimal","Boolean","Choice","MultiChoice","Lookup","Customer")]
+        [Parameter(Mandatory = $true, HelpMessage = "Type of the new field (Text, Memo, Integer, Decimal, Boolean, Date, DateTime, etc.)")]
+        [ValidateSet("Text","Memo","Integer","Decimal","Boolean","Date","DateTime","Choice","MultiChoice","Lookup", "Polymorph","Customer")]
         [string]$Type,
     
         [Parameter(HelpMessage = "Requirement level for the column (None, Recommended, ApplicationRequired, SystemRequired). Default: None.")]
@@ -68,7 +68,7 @@ function New-XbDVColumn {
 
 .DESCRIPTION
     This function provisions a new custom attribute (column) on a Dataverse table using the v9.2 REST API.
-    It supports multiple field types (Text, Memo, Integer, Decimal, Boolean, Choice, MultiChoice, Lookup, Customer)
+    It supports multiple field types (Text, Memo, Integer, Decimal, Boolean, Date, DateTime, Choice, MultiChoice, Lookup, Customer)
     and automatically builds valid metadata payloads, including display name, description, and required level.
     Supports both local and global option sets for choice fields, and target entity configuration for lookups.
 
@@ -89,7 +89,7 @@ function New-XbDVColumn {
 
 .PARAMETER Type
     The data type of the column. Supported types:
-    - Text, Memo, Integer, Decimal, Boolean, Choice, MultiChoice, Lookup, Customer
+    - Text, Memo, Integer, Decimal, Boolean, Date, DateTime, Choice, MultiChoice, Lookup, Customer
 
 .PARAMETER RequiredLevel
     The requirement level for the column. Options:
@@ -267,6 +267,30 @@ function New-XbDVColumn {
                     FalseOption  = @{ Value = 0; Label = New-Label $FalseLabel }
                     OptionSetType = "Boolean"
                 }
+            }
+        }
+        "Date" {
+            # Date-only field (DateOnly behavior)
+            $attributeMetadata = @{
+                "@odata.type"    = "Microsoft.Dynamics.CRM.DateTimeAttributeMetadata"
+                SchemaName       = $SchemaName
+                DisplayName      = New-Label $DisplayName
+                Description      = New-Label $Description
+                RequiredLevel    = $reqLevel
+                Format           = "DateOnly"  #Date Only
+                AttributeType    = "DateTime"
+            }
+        }
+        "DateTime" {
+            # Date and time field (UserLocal behavior)
+            $attributeMetadata = @{
+                "@odata.type"    = "Microsoft.Dynamics.CRM.DateTimeAttributeMetadata"
+                SchemaName       = $SchemaName
+                DisplayName      = New-Label $DisplayName
+                Description      = New-Label $Description
+                RequiredLevel    = $reqLevel
+                Format           = "DateAndTime"  #DateAndTime
+                AttributeType    = "DateTime"
             }
         }
         "Choice" {
