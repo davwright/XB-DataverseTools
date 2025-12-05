@@ -25,21 +25,21 @@ function New-XbDVTable {
     
         [Parameter(HelpMessage = "SchemaName of the primary name field. If not set, defaults to <SchemaName>Name.")]
         [ValidatePattern('^$|^[a-zA-Z0-9_]+_[a-zA-Z0-9_]+$')]
-        [string]$PrimaryNameFieldSchema = "",
+        [string]$PrimaryFieldSchemaName = "",
     
         [Parameter(HelpMessage = "Display name of the primary name field. If not set, defaults to 'Name'.")]
-        [string]$PrimaryNameFieldDisplayName = "",
+        [string]$PrimaryFieldDisplayName = "",
     
         [Parameter(HelpMessage = "Optional description of the primary name field.")]
-        [string]$PrimaryNameFieldDescription = "",
+        [string]$PrimaryFieldDescription = "",
 
         [Parameter(HelpMessage = "Maximum length for the primary name field (1-4000). Default: 100.")]
         [ValidateRange(1,4000)]
-        [int]$PrimaryNameFieldMaxLength = 100,
+        [int]$PrimaryFieldMaxLength = 100,
 
         [Parameter(HelpMessage = "Requirement level for the primary name field (None, Recommended, ApplicationRequired). Default: None.")]
         [ValidateSet("None","Recommended","ApplicationRequired")]
-        [string]$PrimaryNameFieldRequiredLevel = "None",
+        [string]$PrimaryFieldRequiredLevel = "None",
 
         [Parameter(HelpMessage = "Ownership model for the table: UserOwned or OrganizationOwned.")]
         [ValidateSet("UserOwned", "OrganizationOwned")]
@@ -99,24 +99,24 @@ function New-XbDVTable {
 .PARAMETER Description
     Optional. A description of the table used in metadata and solution explorers.
 
-.PARAMETER PrimaryNameFieldSchema
+.PARAMETER PrimaryFieldSchema
     Optional. SchemaName of the primary name field.
     Default: {TableSchemaName}Name (e.g., if table is "new_Project", this becomes "new_ProjectName")
     IMPORTANT: The primary name field is the main identifier for records and cannot be changed after table creation.
 
-.PARAMETER PrimaryNameFieldDisplayName
+.PARAMETER PrimaryFieldDisplayName
     Optional. Display name for the primary name field shown in the UI.
     Default: "Name"
     Example: "Project Name", "Case Title", "Contact Name"
 
-.PARAMETER PrimaryNameFieldDescription
+.PARAMETER PrimaryFieldDescription
     Optional. Description for the primary name field shown in metadata.
     Default: "Primary name for {DisplayName}"
 
-.PARAMETER PrimaryNameFieldMaxLength
+.PARAMETER PrimaryFieldMaxLength
     Maximum length for the primary name field. Range 1-4000. Default is 100.
 
-.PARAMETER PrimaryNameFieldRequiredLevel
+.PARAMETER PrimaryFieldRequiredLevel
     Requirement level for the primary name field. Options:
     - None: Field is optional (default)
     - Recommended: Field shows a blue + icon, suggesting users fill it in
@@ -166,7 +166,7 @@ function New-XbDVTable {
 .EXAMPLE
     New-XbDVTable -EnvironmentUrl $envUrl -SchemaName "new_task" `
         -DisplayName "Custom Task" -DisplayPluralName "Custom Tasks" `
-        -PrimaryNameFieldMaxLength 200 -PrimaryNameFieldRequiredLevel ApplicationRequired `
+        -PrimaryFieldMaxLength 200 -PrimaryFieldRequiredLevel ApplicationRequired `
         -EnableAuditing
 
 .EXAMPLE
@@ -177,11 +177,11 @@ function New-XbDVTable {
 .EXAMPLE
     New-XbDVTable -EnvironmentUrl $envUrl -SchemaName "new_product" `
         -DisplayName "Product" -DisplayPluralName "Products" `
-        -PrimaryNameFieldSchema "new_ProductCode" `
-        -PrimaryNameFieldDisplayName "Product Code" `
-        -PrimaryNameFieldDescription "Unique identifier for the product" `
-        -PrimaryNameFieldMaxLength 50 `
-        -PrimaryNameFieldRequiredLevel ApplicationRequired
+        -PrimaryFieldSchema "new_ProductCode" `
+        -PrimaryFieldDisplayName "Product Code" `
+        -PrimaryFieldDescription "Unique identifier for the product" `
+        -PrimaryFieldMaxLength 50 `
+        -PrimaryFieldRequiredLevel ApplicationRequired
 
     Creates a table with a customized primary name field called "Product Code" that is required
     and limited to 50 characters. Without these parameters, the primary field would default to
@@ -219,8 +219,8 @@ function New-XbDVTable {
     - RequiredLevel: None (optional)
 
     To customize the primary name field, specify these parameters when creating the table:
-    -PrimaryNameFieldSchema, -PrimaryNameFieldDisplayName, -PrimaryNameFieldMaxLength,
-    -PrimaryNameFieldRequiredLevel
+    -PrimaryFieldSchema, -PrimaryFieldDisplayName, -PrimaryFieldMaxLength,
+    -PrimaryFieldRequiredLevel
 
     SOLUTION ASSIGNMENT:
     Tables can be added to a specific solution during creation using the -SolutionUniqueName parameter.
@@ -233,14 +233,14 @@ function New-XbDVTable {
 #>
 
     # Set default values for primary name field if not specified
-    if (-not $PrimaryNameFieldSchema -or $PrimaryNameFieldSchema.Trim() -eq "") {
-        $PrimaryNameFieldSchema = $SchemaName + "Name"
+    if (-not $PrimaryFieldSchema -or $PrimaryFieldSchema.Trim() -eq "") {
+        $PrimaryFieldSchema = $SchemaName + "Name"
     }
-    if (-not $PrimaryNameFieldDisplayName -or $PrimaryNameFieldDisplayName.Trim() -eq "") {
-        $PrimaryNameFieldDisplayName = "Name"
+    if (-not $PrimaryFieldDisplayName -or $PrimaryFieldDisplayName.Trim() -eq "") {
+        $PrimaryFieldDisplayName = "Name"
     }
-    if (-not $PrimaryNameFieldDescription) {
-        $PrimaryNameFieldDescription = "Primary name for $DisplayName"
+    if (-not $PrimaryFieldDescription) {
+        $PrimaryFieldDescription = "Primary name for $DisplayName"
     }
 
     # Build JSON body for the new table (EntityMetadata)
@@ -279,12 +279,12 @@ function New-XbDVTable {
         Attributes = @(
             @{
                 "@odata.type"    = "Microsoft.Dynamics.CRM.StringAttributeMetadata"
-                SchemaName       = $PrimaryNameFieldSchema
+                SchemaName       = $PrimaryFieldSchemaName
                 DisplayName      = @{
                     "@odata.type" = "Microsoft.Dynamics.CRM.Label"
                     "LocalizedLabels" = @(@{
                         "@odata.type" = "Microsoft.Dynamics.CRM.LocalizedLabel"
-                        Label         = $PrimaryNameFieldDisplayName
+                        Label         = $PrimaryFieldDisplayName
                         LanguageCode  = 1033
                     })
                 }
@@ -292,14 +292,14 @@ function New-XbDVTable {
                     "@odata.type" = "Microsoft.Dynamics.CRM.Label"
                     "LocalizedLabels" = @(@{
                         "@odata.type" = "Microsoft.Dynamics.CRM.LocalizedLabel"
-                        Label         = $PrimaryNameFieldDescription
+                        Label         = $PrimaryFieldDescription
                         LanguageCode  = 1033
                     })
                 }
-                MaxLength        = $PrimaryNameFieldMaxLength
+                MaxLength        = $PrimaryFieldMaxLength
                 FormatName       = @{ Value = "Text" }
                 RequiredLevel    = @{
-                    Value                         = $PrimaryNameFieldRequiredLevel
+                    Value                         = $PrimaryFieldRequiredLevel
                     CanBeChanged                  = $true
                     ManagedPropertyLogicalName    = "canmodifyrequirementlevelsettings"
                 }
@@ -326,6 +326,7 @@ function New-XbDVTable {
     }
 
     $jsonBody = $entity | ConvertTo-Json -Depth 15
+    Write-Host $jsonBody
     $headers = @{
         Accept = 'application/json; charset=utf-8'
         "Content-Type" = 'application/json; charset=utf-8'
@@ -352,5 +353,5 @@ Export-ModuleMember -Function New-XbDVTable
 # Example: Create a new custom table "Project" (user-owned) with notes and auditing enabled
 # New-XbDVTable -EnvironmentUrl $envUrl -SchemaName "new_Project" -DisplayName "Project" `
 #    -DisplayPluralName "Projects" -Description "Table for managing projects" `
-#    -PrimaryNameFieldMaxLength 200 -PrimaryNameFieldRequiredLevel ApplicationRequired `
+#    -PrimaryFieldMaxLength 200 -PrimaryFieldRequiredLevel ApplicationRequired `
 #    -EnableNotes -EnableAuditing -EnableDuplicateDetection
