@@ -44,7 +44,6 @@ New-XbDVChoice               # Create a global choice (option set) with multiple
 Get-XbDVTableMetadata        # Retrieve metadata (field names, types, requirements, etc.)
 ```
 
-
 ## 🔐 Authentication
 
 Most functions accept an optional `-AccessToken` parameter. If not provided, they rely on Windows integrated authentication or cached credentials. If you've authenticated using `pac auth create`, those cached credentials may be used automatically, though explicit OAuth tokens (shown below) are more reliable.
@@ -79,9 +78,11 @@ Update-Module Az.Accounts -Force
 ```
 
 Then restart PowerShell and try again.
+
 ## 🧪 Examples
 
 ### Basic Operations
+
 ```powershell
 # Get all accounts from a Dataverse environment
 Get-XbDVData -EnvironmentUrl "https://org.crm4.dynamics.com" -TableName "accounts"
