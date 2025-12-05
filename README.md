@@ -41,6 +41,7 @@ New-XbDVTable                # Provision a custom table (EntityMetadata)
 Remove-XbDVTable             # Delete a custom table and all its data
 New-XbDVColumn               # Add a custom column to an existing table
 New-XbDVChoice               # Create a global choice (option set) with multiple options
+New-XbDVPolymorphicLookup    # Create a polymorphic lookup that can reference multiple table types
 Get-XbDVTableMetadata        # Retrieve metadata (field names, types, requirements, etc.)
 ```
 
@@ -87,6 +88,10 @@ Then restart PowerShell and try again.
 # Get all accounts from a Dataverse environment
 Get-XbDVData -EnvironmentUrl "https://org.crm4.dynamics.com" -TableName "accounts"
 
+# Create a custom table
+New-XbDVTable -EnvironmentUrl $envUrl -TableLogicalName "new_oldtable" -AccessToken $token
+
+
 # Create a new contact
 $new = @{ firstname = "Eva"; lastname = "Holm" }
 New-XbDVRecord -EnvironmentUrl $envUrl -TableName "contacts" -Data $new
@@ -98,6 +103,15 @@ New-XbDVChoice -EnvironmentUrl $envUrl -SchemaName "new_VehicleType" `
 # Add a Choice field to a custom table
 New-XbDVColumn -EnvironmentUrl $envUrl -TableLogicalName "new_project" -SchemaName "new_Status" `
     -DisplayName "Status" -Type Choice -Choices @("Planned","Active","Completed")
+
+# Create a polymorphic lookup that can reference multiple entity types
+$targets = @(
+    @{LogicalName='account'},
+    @{LogicalName='contact'},
+    @{LogicalName='lead'}
+)
+New-XbDVPolymorphicLookup -EnvironmentUrl $envUrl -ReferencingTable "new_activity" `
+    -SchemaName "new_RegardingObjectId" -DisplayName "Regarding" -ReferencedTables $targets
 
 # Delete a custom table
 Remove-XbDVTable -EnvironmentUrl $envUrl -TableLogicalName "new_oldtable" -AccessToken $token
