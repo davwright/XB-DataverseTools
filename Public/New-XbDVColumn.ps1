@@ -52,8 +52,11 @@ function New-XbDVColumn {
         [Parameter(HelpMessage = "Name of an existing global option set to reference (used with Choice or MultiChoice).")]
         [string]$GlobalOptionSetName,
     
-        [Parameter(HelpMessage = "One or more target entities for Lookup or Customer fields (e.g., 'account','contact').")]
-        [string[]]$LookupTargets,
+        [Parameter(HelpMessage = "Target entity for Lookup (e.g., 'account','contact').")]
+        [string]$Lookup,
+
+        [Parameter(HelpMessage = "Plural Display name of Reference entity for Lookup.")]
+        [string]$CollectionName,
 
         [Parameter(HelpMessage = "Unique name of the solution to add this column to (e.g., 'MyCustomSolution'). If not specified, column is added to the default solution.")]
         [string]$SolutionUniqueName,
@@ -116,8 +119,8 @@ function New-XbDVColumn {
 .PARAMETER GlobalOptionSetName
     Optional. If provided, the column will reference an existing global option set by name.
 
-.PARAMETER LookupTargets
-    For Lookup or Customer fields. One or more entity logical names that this field can reference (e.g., "account", "contact").
+.PARAMETER Lookup
+    For Lookup or Customer fields. The logical name of the entity that this field references (e.g., "account", "contact").
 
 .PARAMETER SolutionUniqueName
     Optional. Unique name of the solution to add this column to during creation.
@@ -146,7 +149,7 @@ function New-XbDVColumn {
 .EXAMPLE
     New-XbDVColumn -EnvironmentUrl $envUrl -TableLogicalName "new_caseplan" `
         -SchemaName "new_PrimaryContact" -DisplayName "Primary Contact" `
-        -Type Lookup -LookupTargets @("contact")
+        -Type Lookup -Lookup  contact - CollectionName "Contacts"
 
 .EXAMPLE
     New-XbDVColumn -EnvironmentUrl $envUrl -TableLogicalName "new_inventory" `
@@ -361,37 +364,39 @@ function New-XbDVColumn {
         }
         "Lookup" {
             # Lookup field (reference to another table)
-            if (-not $LookupTargets -or $LookupTargets.Count -eq 0) {
-                Throw "LookupTargets must be specified for the Lookup column."
+            if (-not $Lookup) {
+                Throw "Lookup must be specified for the Lookup column."
             }
-            $attributeMetadata = @{
-                "@odata.type"    = "Microsoft.Dynamics.CRM.OneToManyRelationshipMetadata"
-                SchemaName       = $SchemaName
-                AssociatedMenuConfiguration = @{
-                    Behavior = "UseCollectionName"
-                    Group    = "Details"
-                    Label    = New-Label $DisplayName
-                    Order    = 10000
+            $attributeMetadata = 
+                @{
+                    SchemaName       = $SchemaName + "_" + $TableLogicalName
+                    "@odata.type"    = "Microsoft.Dynamics.CRM.OneToManyRelationshipMetadata"
+                    AssociatedMenuConfiguration = @{
+                        Behavior = "UseCollectionName"
+                        Group    = "Details"
+                        Label    = New-Label $CollectionName
+                        Order    = 10000
+                    }
+                    CascadeConfiguration = @{
+                        Assign     = "Cascade"
+                        Delete     = "Cascade"
+                        Merge      = "Cascade"
+                        Reparent   = "Cascade"
+                        Share      = "Cascade"
+                        Unshare    = "Cascade"
+                    }
+                    ReferencedAttribute = "${Lookup}id"  #GUID attribute of the target entity
+                    ReferencedEntity = $Lookup
+                    ReferencingEntity = $TableLogicalName
+                    Lookup         = @{AttributeType = "Lookup" 
+                        AttributeTypeName = @{Value="LookupType"}
+                        Description      = New-Label $Description
+                        DisplayName      = New-Label $DisplayName
+                        RequiredLevel    = $reqLevel
+                        SchemaName       = $SchemaName
+                        "@odata.type"    = "Microsoft.Dynamics.CRM.LookupAttributeMetadata"
+                    }
                 }
-                CascadeConfiguration = @{
-                    Assign     = "Cascade"
-                    Delete     = "Cascade"
-                    Merge      = "Cascade"
-                    Reparent   = "Cascade"
-                    Share      = "Cascade"
-                    Unshare    = "Cascade"
-                }
-                ReferencedAttribute = $Lookup + "id"
-                ReferencedEntity = $Lookup
-                ReferencingEntity = $TableLogicalName
-                Lookup       = @{AttributeType = "Lookup" 
-                                 AtrributeTypeName = @{Value="LookupType"}}
-                DisplayName      = New-Label $DisplayName
-                Description      = New-Label $Description
-                RequiredLevel    = $reqLevel
-                AttributeType    = "Lookup"
-                Targets          = $LookupTargets
-            }
             $url = "$EnvironmentUrl/api/data/v9.2/RelationshipDefinitions"
         }
         "Polymorphic" {
@@ -413,8 +418,8 @@ function New-XbDVColumn {
         }
         "Customer" {
             # Customer lookup field (special type typically referencing Account/Contact)
-            if (-not $LookupTargets -or $LookupTargets.Count -lt 2) {
-                Throw "Specify two entities (e.g., account and contact) in LookupTargets for a Customer column."
+            if (-not $Lookup -or $Lookup.Count -lt 2) {
+                Throw "Specify two entities (e.g., account and contact) in Lookup for a Customer column."
             }
             $attributeMetadata = @{
                 "@odata.type"    = "Microsoft.Dynamics.CRM.CustomerAttributeMetadata"
@@ -423,7 +428,7 @@ function New-XbDVColumn {
                 Description      = New-Label $Description
                 RequiredLevel    = $reqLevel
                 AttributeType    = "Lookup"
-                Targets          = $LookupTargets
+                Targets          = $Lookup
             }
         }
     }
@@ -431,6 +436,7 @@ function New-XbDVColumn {
     # Convert metadata hashtable to JSON
     $jsonBody = ($attributeMetadata | ConvertTo-Json -Depth 15)
     Write-Host $jsonBody
+    #return
     # HTTP call to create the column on the table
     $url = "$EnvironmentUrl/api/data/v9.2/EntityDefinitions(LogicalName='$TableLogicalName')/Attributes"
     $headers = @{
@@ -465,4 +471,4 @@ Export-ModuleMember -Function New-XbDVColumn
 #
 # 3. Add a Lookup field "Primary Contact" on a custom 'AccountPlan' table pointing to Contact
 # New-XbDVColumn -EnvironmentUrl $envUrl -TableLogicalName "new_accountplan" -SchemaName "new_PrimaryContact" `
-#    -DisplayName "Primary Contact" -Type Lookup -LookupTargets @("contact")
+#    -DisplayName "Primary Contact" -Type Lookup -Lookup @("contact") - CollectionName "Contacts"
