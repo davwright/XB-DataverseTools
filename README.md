@@ -59,8 +59,8 @@ $token | Set-Clipboard
 # Option 2: Manual authentication with Az.Accounts
 Install-Module -Name Az.Accounts -Scope CurrentUser
 Import-Module Az.Accounts -Force
-Connect-AzAccount -AuthScope "https://{yourorgname}.crm.dynamics.com"
-$secureToken = (Get-AzAccessToken -ResourceUrl "https://{yourorgname}.crm.dynamics.com").Token
+Connect-AzAccount -AuthScope $env
+$secureToken = (Get-AzAccessToken -ResourceUrl $env).Token
 
 # Convert SecureString to plain text for API calls
 $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureToken)
@@ -68,7 +68,7 @@ $token = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
 [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
 
 # Option 3: Use Power Platform CLI authentication
-# pac auth create --environment https://{yourorgname}.crm.dynamics.com
+pac auth create --environment $env
 # Then call functions without -AccessToken parameter
 ```
 
