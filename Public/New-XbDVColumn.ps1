@@ -185,6 +185,11 @@ function New-XbDVColumn {
                 "Label"          = $text
                 "LanguageCode"   = 1033
             })
+            "UserLocalizedLabel" = @{
+                "@odata.type"    = "Microsoft.Dynamics.CRM.LocalizedLabel"
+                "Label"          = $text
+                "LanguageCode"   = 1033
+            }
         }
     }
 
