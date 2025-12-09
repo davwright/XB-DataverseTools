@@ -25,7 +25,7 @@ function New-XbDVColumn {
         [string]$Description = "",
     
         [Parameter(Mandatory = $true, HelpMessage = "Type of the new field (Text, Memo, Integer, Decimal, Boolean, Date, DateTime, etc.)")]
-        [ValidateSet("Text","Memo","Integer","Decimal","Boolean","Date","DateTime","Choice","MultiChoice","Lookup", "Polymorph","Customer")]
+        [ValidateSet("Text","Memo","Integer","Decimal","Boolean","Date","DateTime","Choice","MultiChoice","Lookup", "Polymorph","Customer","Image")]
         [string]$Type,
     
         [Parameter(HelpMessage = "Requirement level for the column (None, Recommended, ApplicationRequired, SystemRequired). Default: None.")]
@@ -57,6 +57,13 @@ function New-XbDVColumn {
 
         [Parameter(HelpMessage = "Plural Display name of Reference entity for Lookup.")]
         [string]$CollectionName,
+
+        [Parameter(HelpMessage = "Maximum size in KB for image files. Default: 10240 (10 MB). Maximum: 30720 (30 MB).")]
+        [ValidateRange(1,30720)]
+        [int]$MaxSizeInKB = 10240,
+
+        [Parameter(HelpMessage = "Whether to store the full-resolution image. Default: False (stores thumbnail only).")]
+        [bool]$CanStoreFullImage = $false,
 
         [Parameter(HelpMessage = "Unique name of the solution to add this column to (e.g., 'MyCustomSolution'). If not specified, column is added to the default solution.")]
         [string]$SolutionUniqueName,
@@ -436,6 +443,20 @@ function New-XbDVColumn {
                 RequiredLevel    = $reqLevel
                 AttributeType    = "Lookup"
                 Targets          = $Lookup
+            }
+        }
+        "Image" {
+            # Image field for storing images
+            $attributeMetadata = @{
+                "@odata.type"    = "Microsoft.Dynamics.CRM.ImageAttributeMetadata"
+                SchemaName       = $SchemaName
+                DisplayName      = New-Label $DisplayName
+                Description      = New-Label $Description
+                RequiredLevel    = $reqLevel
+                AttributeType    = "Virtual"
+                AttributeTypeName = @{ Value = "ImageType" }
+                MaxSizeInKB      = $MaxSizeInKB
+                CanStoreFullImage = $CanStoreFullImage
             }
         }
     }
