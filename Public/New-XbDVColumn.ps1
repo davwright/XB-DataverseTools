@@ -374,22 +374,8 @@ function New-XbDVColumn {
             }
             $attributeMetadata = 
                 @{
-                    SchemaName       = $SchemaName + "_" + $TableLogicalName
                     "@odata.type"    = "Microsoft.Dynamics.CRM.OneToManyRelationshipMetadata"
-                    AssociatedMenuConfiguration = @{
-                        Behavior = "UseCollectionName"
-                        Group    = "Details"
-                        Label    = New-Label $CollectionName
-                        Order    = 10000
-                    }
-                    CascadeConfiguration = @{
-                        Assign     = "Cascade"
-                        Delete     = "Cascade"
-                        Merge      = "Cascade"
-                        Reparent   = "Cascade"
-                        Share      = "Cascade"
-                        Unshare    = "Cascade"
-                    }
+                    SchemaName       = $SchemaName + "_" + $TableLogicalName
                     ReferencedAttribute = "${Lookup}id"  #GUID attribute of the target entity
                     ReferencedEntity = $Lookup
                     ReferencingEntity = $TableLogicalName
@@ -400,6 +386,22 @@ function New-XbDVColumn {
                         RequiredLevel    = $reqLevel
                         SchemaName       = $SchemaName
                         "@odata.type"    = "Microsoft.Dynamics.CRM.LookupAttributeMetadata"
+                    }
+                    AssociatedMenuConfiguration = @{
+                        Behavior = "UseCollectionName"
+                        Group    = "Details"
+                        Label    = New-Label $CollectionName
+                        Order    = 10000
+                    }
+                    CascadeConfiguration = @{
+                        # Just default reference behavior.
+                        # Delete reference guid on delete of target record
+                        "Assign" = "NoCascade"
+                        "Delete" = "RemoveLink"
+                        "Merge"  = "NoCascade"
+                        "Reparent"= "NoCascade"
+                        "Share"  = "NoCascade"
+                        "Unshare"= "NoCascade"
                     }
                 }
             $url = "$EnvironmentUrl/api/data/v9.2/RelationshipDefinitions"
@@ -460,7 +462,7 @@ function New-XbDVColumn {
         Write-Host "New column '$DisplayName' (Type: $Type) created on $TableLogicalName."
     }
     catch {
-        Throw "Could not create column '$SchemaName' on $TableLogicalName. Error: $($_.Exception.Message)"
+        Throw "Could not create column '${SchemaName}' on ${TableLogicalName}. Error: $($_.Exception.Message)"
     }
     return $jsonBody
 }
