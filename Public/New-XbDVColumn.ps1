@@ -457,6 +457,7 @@ function New-XbDVColumn {
     catch {
         Throw "Could not create column '$SchemaName' on $TableLogicalName. Error: $($_.Exception.Message)"
     }
+    return $jsonBody
 }
 Export-ModuleMember -Function New-XbDVColumn
 
