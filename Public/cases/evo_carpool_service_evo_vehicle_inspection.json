@@ -1,78 +1,78 @@
 {
-    "SchemaName":  "evo_carpool_service_evo_vehicle_inspection",
-    "@odata.type":  "Microsoft.Dynamics.CRM.OneToManyRelationshipMetadata",
-    "AssociatedMenuConfiguration":  {
-        "Label":  {
-            "@odata.type":  "Microsoft.Dynamics.CRM.Label",
-            "UserLocalizedLabel":  {
-                "Label":  "Vehicle inspections",
-                "LanguageCode":  1033,
-                "@odata.type":  "Microsoft.Dynamics.CRM.LocalizedLabel"
-            },
-            "LocalizedLabels":  [
+    "@odata.type": "Microsoft.Dynamics.CRM.OneToManyRelationshipMetadata",
+    "AssociatedMenuConfiguration": {
+        "Behavior": "UseCollectionName",
+        "Group": "Details",
+        "Label": {
+            "@odata.type": "Microsoft.Dynamics.CRM.Label",
+            "LocalizedLabels": [
                 {
-                    "Label":  "Vehicle inspections",
-                    "LanguageCode":  1033,
-                    "@odata.type":  "Microsoft.Dynamics.CRM.LocalizedLabel"
+                    "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+                    "Label": "Vehicle inspections",
+                    "LanguageCode": 1033
                 }
-            ]
+            ],
+            "UserLocalizedLabel": {
+                "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+                "Label": "Vehicle inspections",
+                "LanguageCode": 1033
+            }
         },
-        "Group":  "Details",
-        "Order":  10000,
-        "Behavior":  "UseCollectionName"
+        "Order": 10000
     },
-    "ReferencedAttribute":  "evo_carpool_serviceid",
-    "Lookup":  {
-        "AttributeType":  "Lookup",
-        "Description":  {
-            "@odata.type":  "Microsoft.Dynamics.CRM.Label",
-            "UserLocalizedLabel":  {
-                "Label":  "the service being provided for the vehicle",
-                "LanguageCode":  1033,
-                "@odata.type":  "Microsoft.Dynamics.CRM.LocalizedLabel"
-            },
-            "LocalizedLabels":  [
-                {
-                    "Label":  "the service being provided for the vehicle",
-                    "LanguageCode":  1033,
-                    "@odata.type":  "Microsoft.Dynamics.CRM.LocalizedLabel"
-                }
-            ]
-        },
-        "SchemaName":  "evo_carpool_service",
-        "DisplayName":  {
-            "@odata.type":  "Microsoft.Dynamics.CRM.Label",
-            "UserLocalizedLabel":  {
-                "@odata.type":  "Microsoft.Dynamics.CRM.LocalizedLabel",
-                "Label":  "Carpool service",
-                "LanguageCode":  1033
-            },
-            "LocalizedLabels":  [
-                {
-                    "@odata.type":  "Microsoft.Dynamics.CRM.LocalizedLabel",
-                    "Label":  "Carpool service",
-                    "LanguageCode":  1033
-                }
-            ]
-        },
-        "RequiredLevel":  {
-            "CanBeChanged":  true,
-            "ManagedPropertyLogicalName":  "canmodifyrequirementlevelsettings",
-            "Value":  "ApplicationRequired"
-        },
-        "AttributeTypeName":  {
-            "Value":  "LookupType"
-        },
-        "@odata.type":  "Microsoft.Dynamics.CRM.LookupAttributeMetadata"
+    "CascadeConfiguration": {
+        "Assign": "Cascade",
+        "Delete": "Cascade",
+        "Merge": "Cascade",
+        "Reparent": "Cascade",
+        "Share": "Cascade",
+        "Unshare": "Cascade"
     },
-    "ReferencingEntity":  "evo_vehicle_inspection",
-    "ReferencedEntity":  "evo_carpool_service",
-    "CascadeConfiguration":  {
-        "Merge":  "Cascade",
-        "Unshare":  "Cascade",
-        "Assign":  "Cascade",
-        "Reparent":  "Cascade",
-        "Delete":  "Cascade",
-        "Share":  "Cascade"
-    }
+    "Lookup": {
+        "@odata.type": "Microsoft.Dynamics.CRM.LookupAttributeMetadata",
+        "AttributeType": "Lookup",
+        "AttributeTypeName": {
+            "Value": "LookupType"
+        },
+        "Description": {
+            "@odata.type": "Microsoft.Dynamics.CRM.Label",
+            "LocalizedLabels": [
+                {
+                    "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+                    "Label": "the service being provided for the vehicle",
+                    "LanguageCode": 1033
+                }
+            ],
+            "UserLocalizedLabel": {
+                "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+                "Label": "the service being provided for the vehicle",
+                "LanguageCode": 1033
+            }
+        },
+        "DisplayName": {
+            "@odata.type": "Microsoft.Dynamics.CRM.Label",
+            "LocalizedLabels": [
+                {
+                    "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+                    "Label": "Carpool service",
+                    "LanguageCode": 1033
+                }
+            ],
+            "UserLocalizedLabel": {
+                "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+                "Label": "Carpool service",
+                "LanguageCode": 1033
+            }
+        },
+        "RequiredLevel": {
+            "CanBeChanged": true,
+            "ManagedPropertyLogicalName": "canmodifyrequirementlevelsettings",
+            "Value": "ApplicationRequired"
+        },
+        "SchemaName": "evo_carpool_service"
+    },
+    "ReferencedAttribute": "evo_carpool_serviceid",
+    "ReferencedEntity": "evo_carpool_service",
+    "ReferencingEntity": "evo_vehicle_inspection",
+    "SchemaName": "evo_carpool_service_evo_vehicle_inspection"
 }
