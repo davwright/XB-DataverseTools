@@ -4,18 +4,18 @@
     "AssociatedMenuConfiguration":  {
         "Label":  {
             "@odata.type":  "Microsoft.Dynamics.CRM.Label",
+            "UserLocalizedLabel":  {
+                "Label":  "Vehicle inspections",
+                "LanguageCode":  1033,
+                "@odata.type":  "Microsoft.Dynamics.CRM.LocalizedLabel"
+            },
             "LocalizedLabels":  [
                 {
                     "Label":  "Vehicle inspections",
                     "LanguageCode":  1033,
                     "@odata.type":  "Microsoft.Dynamics.CRM.LocalizedLabel"
                 }
-            ],
-            "UserLocalizedLabel":  {
-                "Label":  "Vehicle inspections",
-                "LanguageCode":  1033,
-                "@odata.type":  "Microsoft.Dynamics.CRM.LocalizedLabel"
-            }
+            ]
         },
         "Group":  "Details",
         "Order":  10000,
@@ -26,34 +26,34 @@
         "AttributeType":  "Lookup",
         "Description":  {
             "@odata.type":  "Microsoft.Dynamics.CRM.Label",
+            "UserLocalizedLabel":  {
+                "Label":  "the service being provided for the vehicle",
+                "LanguageCode":  1033,
+                "@odata.type":  "Microsoft.Dynamics.CRM.LocalizedLabel"
+            },
             "LocalizedLabels":  [
                 {
                     "Label":  "the service being provided for the vehicle",
                     "LanguageCode":  1033,
                     "@odata.type":  "Microsoft.Dynamics.CRM.LocalizedLabel"
                 }
-            ],
-            "UserLocalizedLabel":  {
-                "Label":  "the service being provided for the vehicle",
-                "LanguageCode":  1033,
-                "@odata.type":  "Microsoft.Dynamics.CRM.LocalizedLabel"
-            }
+            ]
         },
         "SchemaName":  "evo_carpool_service",
         "DisplayName":  {
             "@odata.type":  "Microsoft.Dynamics.CRM.Label",
+            "UserLocalizedLabel":  {
+                "@odata.type":  "Microsoft.Dynamics.CRM.LocalizedLabel",
+                "Label":  "Carpool service",
+                "LanguageCode":  1033
+            },
             "LocalizedLabels":  [
                 {
                     "@odata.type":  "Microsoft.Dynamics.CRM.LocalizedLabel",
                     "Label":  "Carpool service",
                     "LanguageCode":  1033
                 }
-            ],
-            "UserLocalizedLabel":  {
-                "@odata.type":  "Microsoft.Dynamics.CRM.LocalizedLabel",
-                "Label":  "Carpool service",
-                "LanguageCode":  1033
-            }
+            ]
         },
         "RequiredLevel":  {
             "CanBeChanged":  true,
