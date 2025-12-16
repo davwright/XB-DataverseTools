@@ -192,14 +192,26 @@ function New-XbDVColumn {
     https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/create-entity-attribute
 #>
     # Helper function to create Label objects
-    function New-Label($text) {
-        return @{
-            "@odata.type"     = "Microsoft.Dynamics.CRM.Label"
-            "LocalizedLabels" = @(@{
+    function New-Label($text, $textDE = "") {
+        $localizedLabels = @(
+            @{
                 "@odata.type"    = "Microsoft.Dynamics.CRM.LocalizedLabel"
                 "Label"          = $text
-                "LanguageCode"   = 1033
-            })
+                "LanguageCode"   = 1033   # English - United States
+            }
+        )
+
+        if ($textDE) {
+            $localizedLabels += @{
+                "@odata.type"    = "Microsoft.Dynamics.CRM.LocalizedLabel"
+                "Label"          = $textDE
+                "LanguageCode"   = 1031   # German - Germany
+            }
+        }
+
+        return @{
+            "@odata.type"     = "Microsoft.Dynamics.CRM.Label"
+            "LocalizedLabels" = $localizedLabels
             "UserLocalizedLabel" = @{
                 "@odata.type"    = "Microsoft.Dynamics.CRM.LocalizedLabel"
                 "Label"          = $text
@@ -225,7 +237,7 @@ function New-XbDVColumn {
             $attributeMetadata = @{
                 "@odata.type"    = "Microsoft.Dynamics.CRM.StringAttributeMetadata"
                 SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName
+                DisplayName      = New-Label $DisplayName $DisplayNameDE
                 Description      = New-Label $Description
                 RequiredLevel    = $reqLevel
                 MaxLength        = $MaxLength
@@ -239,7 +251,7 @@ function New-XbDVColumn {
             $attributeMetadata = @{
                 "@odata.type"    = "Microsoft.Dynamics.CRM.MemoAttributeMetadata"
                 SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName
+                DisplayName      = New-Label $DisplayName $DisplayNameDE
                 Description      = New-Label $Description
                 RequiredLevel    = $reqLevel
                 Format           = "TextArea"
@@ -252,7 +264,7 @@ function New-XbDVColumn {
             $attributeMetadata = @{
                 "@odata.type"    = "Microsoft.Dynamics.CRM.IntegerAttributeMetadata"
                 SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName
+                DisplayName      = New-Label $DisplayName $DisplayNameDE
                 Description      = New-Label $Description
                 RequiredLevel    = $reqLevel
                 Format           = "None"
@@ -268,7 +280,7 @@ function New-XbDVColumn {
             $attributeMetadata = @{
                 "@odata.type"    = "Microsoft.Dynamics.CRM.DecimalAttributeMetadata"
                 SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName
+                DisplayName      = New-Label $DisplayName $DisplayNameDE
                 Description      = New-Label $Description
                 RequiredLevel    = $reqLevel
                 MinValue         = -100000000000
@@ -282,7 +294,7 @@ function New-XbDVColumn {
             $attributeMetadata = @{
                 "@odata.type"    = "Microsoft.Dynamics.CRM.BooleanAttributeMetadata"
                 SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName
+                DisplayName      = New-Label $DisplayName $DisplayNameDE
                 Description      = New-Label $Description
                 RequiredLevel    = $reqLevel
                 AttributeType    = "Boolean"
@@ -298,7 +310,7 @@ function New-XbDVColumn {
             $attributeMetadata = @{
                 "@odata.type"    = "Microsoft.Dynamics.CRM.DateTimeAttributeMetadata"
                 SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName
+                DisplayName      = New-Label $DisplayName $DisplayNameDE
                 Description      = New-Label $Description
                 RequiredLevel    = $reqLevel
                 Format           = "DateOnly"  #Date Only
@@ -310,7 +322,7 @@ function New-XbDVColumn {
             $attributeMetadata = @{
                 "@odata.type"    = "Microsoft.Dynamics.CRM.DateTimeAttributeMetadata"
                 SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName
+                DisplayName      = New-Label $DisplayName $DisplayNameDE
                 Description      = New-Label $Description
                 RequiredLevel    = $reqLevel
                 Format           = "DateAndTime"  #DateAndTime
@@ -322,7 +334,7 @@ function New-XbDVColumn {
             $attributeMetadata = @{
                 "@odata.type"    = "Microsoft.Dynamics.CRM.PicklistAttributeMetadata"
                 SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName
+                DisplayName      = New-Label $DisplayName $DisplayNameDE
                 Description      = New-Label $Description
                 RequiredLevel    = $reqLevel
                 AttributeType    = "Picklist"
@@ -354,7 +366,7 @@ function New-XbDVColumn {
             $attributeMetadata = @{
                 "@odata.type"    = "Microsoft.Dynamics.CRM.MultiSelectPicklistAttributeMetadata"
                 SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName
+                DisplayName      = New-Label $DisplayName $DisplayNameDE
                 Description      = New-Label $Description
                 RequiredLevel    = $reqLevel
                 AttributeType    = "Virtual"
@@ -397,7 +409,7 @@ function New-XbDVColumn {
                     Lookup         = @{AttributeType = "Lookup" 
                         AttributeTypeName = @{Value="LookupType"}
                         Description      = New-Label $Description
-                        DisplayName      = New-Label $DisplayName
+                        DisplayName      = New-Label $DisplayName $DisplayNameDE
                         RequiredLevel    = $reqLevel
                         SchemaName       = $SchemaName
                         "@odata.type"    = "Microsoft.Dynamics.CRM.LookupAttributeMetadata"
@@ -453,7 +465,7 @@ function New-XbDVColumn {
                     "AttributeType" = "Lookup"
                     "AttributeTypeName" = @{ "Value" = "LookupType" }
                     "SchemaName" = $SchemaName
-                    "DisplayName" = New-Label $DisplayName
+                    "DisplayName" = New-Label $DisplayName $DisplayNameDE
                     "Description" = New-Label $Description
                     "RequiredLevel" = $reqLevel
                 }
@@ -469,7 +481,7 @@ function New-XbDVColumn {
             $attributeMetadata = @{
                 "@odata.type"    = "Microsoft.Dynamics.CRM.CustomerAttributeMetadata"
                 SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName
+                DisplayName      = New-Label $DisplayName $DisplayNameDE
                 Description      = New-Label $Description
                 RequiredLevel    = $reqLevel
                 AttributeType    = "Lookup"
@@ -481,7 +493,7 @@ function New-XbDVColumn {
             $attributeMetadata = @{
                 "@odata.type"    = "Microsoft.Dynamics.CRM.ImageAttributeMetadata"
                 SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName
+                DisplayName      = New-Label $DisplayName $DisplayNameDE
                 Description      = New-Label $Description
                 RequiredLevel    = $reqLevel
                 AttributeType    = "Virtual"
@@ -494,7 +506,6 @@ function New-XbDVColumn {
 
     # Convert metadata hashtable to JSON
     $jsonBody = ($attributeMetadata | ConvertTo-Json -Depth 15)
-    Write-Host $jsonBody
     #return
     # HTTP call to create the column on the table
     # Note: URL may have been set already for Lookup and Polymorphic types
@@ -523,11 +534,11 @@ function New-XbDVColumn {
     $restContent += ""
     $restContent += $jsonBody
     $restContent -join "`n" | Out-File -FilePath $restFilePath -Encoding UTF8
-    Write-Host "REST request saved to: $restFilePath" -ForegroundColor Gray
+#    Write-Host "REST request saved to: $restFilePath" -ForegroundColor Gray
 
     try {
         Invoke-RestMethod -Method POST -Uri $url -Headers $headers -Body $jsonBody -ErrorAction Stop
-        Write-Host "New column '$DisplayName' (Type: $Type) created on $TableLogicalName." -ForegroundColor Green
+        Write-Host "New column '$DisplayName' (${SchemaName}: $Type) created on $TableLogicalName." -ForegroundColor Green
     }
     catch {
         $httpStatus = $_.Exception.Response.StatusCode.value__
@@ -549,7 +560,7 @@ function New-XbDVColumn {
             }
         }
 
-        Write-Host "HTTPStatus $httpStatus | Dataverse error: $dvErrorCode | $errorMessage" -ForegroundColor Yellow
+        Write-Host "HTTP Status $httpStatus | Dataverse error: $dvErrorCode | $errorMessage" -ForegroundColor Yellow
         Throw "Could not create column '${SchemaName}' on ${TableLogicalName}. Error: $errorMessage"
     }
 }
