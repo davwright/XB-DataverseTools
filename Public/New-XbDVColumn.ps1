@@ -21,6 +21,10 @@ function New-XbDVColumn {
         [ValidateNotNullOrEmpty()]
         [string]$DisplayName,
     
+        [Parameter(Mandatory = $true, HelpMessage = "Display name for the new field in German")]
+        [ValidateNotNullOrEmpty()]
+        [string]$DisplayNameDE,
+    
         [Parameter(HelpMessage = "List of tables to reference for polymorphic lookups (e.g., 'account','contact')")]
         [ValidateNotNullOrEmpty()]
         [string[]]$ReferencedTables,
@@ -526,7 +530,27 @@ function New-XbDVColumn {
         Write-Host "New column '$DisplayName' (Type: $Type) created on $TableLogicalName."
     }
     catch {
-        Throw "Could not create column '${SchemaName}' on ${TableLogicalName}. Error: $($_.Exception.Message)"
+        $httpStatus = $_.Exception.Response.StatusCode.value__
+        $errorMessage = $_.Exception.Message
+        $dvErrorCode = ""
+
+        if ($_.ErrorDetails.Message) {
+            try {
+                $errorDetails = $_.ErrorDetails.Message | ConvertFrom-Json
+                if ($errorDetails.error.message) {
+                    $errorMessage = $errorDetails.error.message
+                }
+                if ($errorDetails.error.code) {
+                    $dvErrorCode = $errorDetails.error.code
+                }
+            }
+            catch {
+                $errorMessage = $_.ErrorDetails.Message
+            }
+        }
+
+        Write-Host "HTTPStatus $httpStatus | Dataverse error: $dvErrorCode | $errorMessage" -ForegroundColor Yellow
+        Throw "Could not create column '${SchemaName}' on ${TableLogicalName}. Error: $errorMessage"
     }
     return $jsonBody
 }
