@@ -207,6 +207,7 @@ function New-XbDVPolymorphicLookup {
 
     # Build the Lookup attribute metadata
     $lookupMetadata = @{
+        "@odata.type" = "Microsoft.Dynamics.CRM.ComplexLookupAttributeMetadata"
         AttributeType = "Lookup"
         AttributeTypeName = @{
             Value = "LookupType"
@@ -244,6 +245,18 @@ function New-XbDVPolymorphicLookup {
 
     # Use the CreatePolymorphicLookupAttribute Web API action
     $actionUrl = "$EnvironmentUrl/api/data/v9.2/CreatePolymorphicLookupAttribute"
+
+    # Write request to .rest file for debugging with REST Client Extension
+    $restFilePath = Join-Path $PWD "$SchemaName.rest"
+    $restContent = @()
+    $restContent += "POST $actionUrl"
+    foreach ($headerKey in $headers.Keys) {
+        $restContent += "${headerKey}: $($headers[$headerKey])"
+    }
+    $restContent += ""
+    $restContent += $jsonBody
+    $restContent -join "`n" | Out-File -FilePath $restFilePath -Encoding UTF8
+    Write-Host "REST request saved to: $restFilePath" -ForegroundColor Gray
 
     try {
         Write-Host "Creating polymorphic lookup '$DisplayName' on $ReferencingTable with $($ReferencedTables.Count) target table(s)..." -ForegroundColor Cyan
