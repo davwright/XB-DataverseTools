@@ -180,7 +180,6 @@ function New-XbDVChoice {
     $restContent += ""
     $restContent += $jsonBody
     $restContent -join "`n" | Out-File -FilePath $restFilePath -Encoding UTF8
-    Write-Host "REST request saved to: $restFilePath" -ForegroundColor Gray
 
     try {
         Invoke-RestMethod -Method POST -Uri $url -Headers $headers -Body $jsonBody -ErrorAction Stop
@@ -188,7 +187,7 @@ function New-XbDVChoice {
         if ($SolutionUniqueName) {
             $successMessage += " in solution '$SolutionUniqueName'"
         }
-        Write-Host "$successMessage."
+        Write-Host "$successMessage." -ForegroundColor Green
     }
     catch {
         $errorDetails = $_.ErrorDetails.Message
