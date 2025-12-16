@@ -220,6 +220,25 @@ function New-XbDVColumn {
         }
     }
 
+    # Helper function to lookup global option set GUID by name
+    function Get-GlobalOptionSetId($name, $envUrl, $token) {
+        $lookupUrl = "$envUrl/api/data/v9.2/GlobalOptionSetDefinitions(Name='$name')?`$select=MetadataId"
+        $lookupHeaders = @{ Accept = 'application/json' }
+        if ($token) {
+            $lookupHeaders['Authorization'] = "Bearer $token"
+        }
+        try {
+            $result = Invoke-RestMethod -Method GET -Uri $lookupUrl -Headers $lookupHeaders -ErrorAction Stop
+            if ($result.MetadataId) {
+                return $result.MetadataId
+            } else {
+                Throw "Global option set '$name' not found."
+            }
+        } catch {
+            Throw "Failed to lookup global option set '$name'. Error: $($_.Exception.Message)"
+        }
+    }
+
     # Build RequiredLevel metadata object
     $reqLevel = @{
         Value = $RequiredLevel
@@ -340,10 +359,8 @@ function New-XbDVColumn {
                 AttributeType    = "Picklist"
             }
             if ($GlobalOptionSetName) {
-                $attributeMetadata["OptionSet"] = @{
-                    "@odata.type" = "Microsoft.Dynamics.CRM.OptionSetMetadata"
-                    Name          = $GlobalOptionSetName
-                }
+                $globalOptionSetId = Get-GlobalOptionSetId $GlobalOptionSetName $EnvironmentUrl $AccessToken
+                $attributeMetadata["GlobalOptionSet@odata.bind"] = "/GlobalOptionSetDefinitions($globalOptionSetId)"
             }
             elseif ($Choices) {
                 $attributeMetadata["OptionSet"] = @{
@@ -373,10 +390,8 @@ function New-XbDVColumn {
                 AttributeTypeName = @{ Value = "MultiSelectPicklistType" }
             }
             if ($GlobalOptionSetName) {
-                $attributeMetadata["OptionSet"] = @{
-                    "@odata.type" = "Microsoft.Dynamics.CRM.OptionSetMetadata"
-                    Name          = $GlobalOptionSetName
-                }
+                $globalOptionSetId = Get-GlobalOptionSetId $GlobalOptionSetName $EnvironmentUrl $AccessToken
+                $attributeMetadata["GlobalOptionSet@odata.bind"] = "/GlobalOptionSetDefinitions($globalOptionSetId)"
             }
             elseif ($Choices) {
                 $attributeMetadata["OptionSet"] = @{
