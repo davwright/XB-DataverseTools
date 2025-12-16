@@ -21,11 +21,15 @@ function New-XbDVColumn {
         [ValidateNotNullOrEmpty()]
         [string]$DisplayName,
     
+        [Parameter(HelpMessage = "List of tables to reference for polymorphic lookups (e.g., 'account','contact')")]
+        [ValidateNotNullOrEmpty()]
+        [string[]]$ReferencedTables,
+    
         [Parameter(HelpMessage = "Optional description for the field shown in metadata and UI")]
         [string]$Description = "",
     
         [Parameter(Mandatory = $true, HelpMessage = "Type of the new field (Text, Memo, Integer, Decimal, Boolean, Date, DateTime, etc.)")]
-        [ValidateSet("Text","Memo","Integer","Decimal","Boolean","Date","DateTime","Choice","MultiChoice","Lookup", "Polymorph","Customer","Image")]
+        [ValidateSet("Text","Memo","Integer","Decimal","Boolean","Date","DateTime","Choice","MultiChoice","Lookup", "Polymorphic","Customer","Image")]
         [string]$Type,
     
         [Parameter(HelpMessage = "Requirement level for the column (None, Recommended, ApplicationRequired, SystemRequired). Default: None.")]
@@ -418,14 +422,37 @@ function New-XbDVColumn {
             if (-not $ReferencedTables -or $ReferencedTables.Count -eq 0) {
                 Throw "ReferencedTables must be specified for the Polymorphic column."
             }
+
+            # Build relationships array for each referenced table
+            $relationships = @()
+            foreach ($refTable in $ReferencedTables) {
+                $targetTable = if ($refTable -is [hashtable]) { $refTable.LogicalName } else { $refTable }
+                $relationships += @{
+                    "ReferencedEntity" = $targetTable
+                    "ReferencingEntity" = $TableLogicalName
+                    "SchemaName" = "${SchemaName}_${targetTable}"
+                    "CascadeConfiguration" = @{
+                        "Assign" = "NoCascade"
+                        "Delete" = "RemoveLink"
+                        "Merge" = "NoCascade"
+                        "Reparent" = "NoCascade"
+                        "Share" = "NoCascade"
+                        "Unshare" = "NoCascade"
+                    }
+                }
+            }
+
             $attributeMetadata = @{
-                "@odata.type"    = "Microsoft.Dynamics.CRM.LookupAttributeMetadata"
-                SchemaName       = "$TableLogicalName_" + $Lookup.Substring(4)+"_$SchemaName"
-                DisplayName      = New-Label $DisplayName
-                Description      = New-Label $Description
-                RequiredLevel    = $reqLevel
-                AttributeType    = "Lookup"
-                OneToManyRelationships = $ReferencedTables
+                "OneToManyRelationships" = $relationships
+                "Lookup" = @{
+                    "@odata.type" = "Microsoft.Dynamics.CRM.ComplexLookupAttributeMetadata"
+                    "AttributeType" = "Lookup"
+                    "AttributeTypeName" = @{ "Value" = "LookupType" }
+                    "SchemaName" = $SchemaName
+                    "DisplayName" = New-Label $DisplayName
+                    "Description" = New-Label $Description
+                    "RequiredLevel" = $reqLevel
+                }
             }
             #Polymorphic lookup creation uses a different endpoint
             $url = "$EnvironmentUrl/api/data/v9.2/CreatePolymorphicLookupAttribute"
@@ -466,7 +493,10 @@ function New-XbDVColumn {
     Write-Host $jsonBody
     #return
     # HTTP call to create the column on the table
-    $url = "$EnvironmentUrl/api/data/v9.2/EntityDefinitions(LogicalName='$TableLogicalName')/Attributes"
+    # Note: URL may have been set already for Lookup and Polymorphic types
+    if (-not $url) {
+        $url = "$EnvironmentUrl/api/data/v9.2/EntityDefinitions(LogicalName='$TableLogicalName')/Attributes"
+    }
     $headers = @{
         Accept = 'application/json; charset=utf-8'
         "Content-Type" = 'application/json; charset=utf-8'
@@ -478,6 +508,19 @@ function New-XbDVColumn {
     if ($SolutionUniqueName) {
         $headers["MSCRM.SolutionUniqueName"] = $SolutionUniqueName
     }
+
+    # Write request to .rest file for debugging with REST Client Extension
+    $restFilePath = Join-Path $PWD "$SchemaName.rest"
+    $restContent = @()
+    $restContent += "POST $url"
+    foreach ($headerKey in $headers.Keys) {
+        $restContent += "${headerKey}: $($headers[$headerKey])"
+    }
+    $restContent += ""
+    $restContent += $jsonBody
+    $restContent -join "`n" | Out-File -FilePath $restFilePath -Encoding UTF8
+    Write-Host "REST request saved to: $restFilePath" -ForegroundColor Gray
+
     try {
         Invoke-RestMethod -Method POST -Uri $url -Headers $headers -Body $jsonBody -ErrorAction Stop
         Write-Host "New column '$DisplayName' (Type: $Type) created on $TableLogicalName."
