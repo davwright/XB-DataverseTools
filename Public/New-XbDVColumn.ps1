@@ -527,7 +527,7 @@ function New-XbDVColumn {
 
     try {
         Invoke-RestMethod -Method POST -Uri $url -Headers $headers -Body $jsonBody -ErrorAction Stop
-        Write-Host "New column '$DisplayName' (Type: $Type) created on $TableLogicalName."
+        Write-Host "New column '$DisplayName' (Type: $Type) created on $TableLogicalName." -ForegroundColor Green
     }
     catch {
         $httpStatus = $_.Exception.Response.StatusCode.value__
@@ -552,7 +552,6 @@ function New-XbDVColumn {
         Write-Host "HTTPStatus $httpStatus | Dataverse error: $dvErrorCode | $errorMessage" -ForegroundColor Yellow
         Throw "Could not create column '${SchemaName}' on ${TableLogicalName}. Error: $errorMessage"
     }
-    return $jsonBody
 }
 Export-ModuleMember -Function New-XbDVColumn
 
