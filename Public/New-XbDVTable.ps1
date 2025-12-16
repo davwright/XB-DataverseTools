@@ -30,6 +30,9 @@ function New-XbDVTable {
         [Parameter(HelpMessage = "Display name of the primary name field. If not set, defaults to 'Name'.")]
         [string]$PrimaryFieldDisplayName = "",
     
+        [Parameter(HelpMessage = "Display name of the primary name fieldin German.")]
+        [string]$PrimaryFieldDisplayNameDE = "",
+    
         [Parameter(HelpMessage = "Optional description of the primary name field.")]
         [string]$PrimaryFieldDescription = "",
 
