@@ -15,7 +15,11 @@ function New-XbDVTable {
         [Parameter(Mandatory = $true, Position = 2, HelpMessage = "Singular display name of the table (e.g., 'Project')")]
         [ValidateNotNullOrEmpty()]
         [string]$DisplayName,
-    
+
+        [Parameter(Mandatory = $true, Position = 2, HelpMessage = "Singular display name of the table (e.g., 'Project')")]
+        [ValidateNotNullOrEmpty()]
+        [string]$DisplayNameDE,
+
         [Parameter(Mandatory = $true, Position = 3, HelpMessage = "Plural display name of the table (e.g., 'Projects')")]
         [ValidateNotNullOrEmpty()]
         [string]$DisplayPluralName,
@@ -246,25 +250,42 @@ function New-XbDVTable {
         $PrimaryFieldDescription = "Primary name for $DisplayName"
     }
 
+    # Build localized labels for DisplayName
+    $displayNameLabels = @(
+        @{
+            "@odata.type" = "Microsoft.Dynamics.CRM.LocalizedLabel"
+            Label         = $DisplayName
+            LanguageCode  = 1033
+        }
+    )
+    if ($DisplayNameDE) {
+        $displayNameLabels += @{
+            "@odata.type" = "Microsoft.Dynamics.CRM.LocalizedLabel"
+            Label         = $DisplayNameDE
+            LanguageCode  = 1031
+        }
+    }
+
+    # Build localized labels for DisplayCollectionName (plural)
+    $displayPluralLabels = @(
+        @{
+            "@odata.type" = "Microsoft.Dynamics.CRM.LocalizedLabel"
+            Label         = $DisplayPluralName
+            LanguageCode  = 1033
+        }
+    )
+
     # Build JSON body for the new table (EntityMetadata)
     $entity = [ordered]@{
         "@odata.type"             = "Microsoft.Dynamics.CRM.EntityMetadata"
         SchemaName                = $SchemaName
         DisplayName               = @{
             "@odata.type" = "Microsoft.Dynamics.CRM.Label"
-            "LocalizedLabels" = @(@{
-                "@odata.type" = "Microsoft.Dynamics.CRM.LocalizedLabel"
-                Label         = $DisplayName
-                LanguageCode  = 1033
-            })
+            "LocalizedLabels" = $displayNameLabels
         }
         DisplayCollectionName     = @{
             "@odata.type" = "Microsoft.Dynamics.CRM.Label"
-            "LocalizedLabels" = @(@{
-                "@odata.type" = "Microsoft.Dynamics.CRM.LocalizedLabel"
-                Label         = $DisplayPluralName
-                LanguageCode  = 1033
-            })
+            "LocalizedLabels" = $displayPluralLabels
         }
         Description               = @{
             "@odata.type" = "Microsoft.Dynamics.CRM.Label"
@@ -285,11 +306,23 @@ function New-XbDVTable {
                 SchemaName       = $PrimaryFieldSchemaName
                 DisplayName      = @{
                     "@odata.type" = "Microsoft.Dynamics.CRM.Label"
-                    "LocalizedLabels" = @(@{
-                        "@odata.type" = "Microsoft.Dynamics.CRM.LocalizedLabel"
-                        Label         = $PrimaryFieldDisplayName
-                        LanguageCode  = 1033
-                    })
+                    "LocalizedLabels" = $(
+                        $primaryLabels = @(
+                            @{
+                                "@odata.type" = "Microsoft.Dynamics.CRM.LocalizedLabel"
+                                Label         = $PrimaryFieldDisplayName
+                                LanguageCode  = 1033
+                            }
+                        )
+                        if ($PrimaryFieldDisplayNameDE) {
+                            $primaryLabels += @{
+                                "@odata.type" = "Microsoft.Dynamics.CRM.LocalizedLabel"
+                                Label         = $PrimaryFieldDisplayNameDE
+                                LanguageCode  = 1031
+                            }
+                        }
+                        $primaryLabels
+                    )
                 }
                 Description      = @{
                     "@odata.type" = "Microsoft.Dynamics.CRM.Label"
@@ -329,7 +362,6 @@ function New-XbDVTable {
     }
 
     $jsonBody = $entity | ConvertTo-Json -Depth 15
-    Write-Host $jsonBody
     $headers = @{
         Accept = 'application/json; charset=utf-8'
         "Content-Type" = 'application/json; charset=utf-8'
@@ -345,8 +377,8 @@ function New-XbDVTable {
     $url = "$EnvironmentUrl/api/data/v9.2/EntityDefinitions"
     try {
         Invoke-RestMethod -Method POST -Uri $url -Headers $headers -Body $jsonBody -ErrorAction Stop
-        Write-Host "Dataverse table '$DisplayName' created (SchemaName: $SchemaName)."
-    }
+        Write-Host "Dataverse table '$DisplayName' created (SchemaName: $SchemaName)." -ForegroundColor  Green
+       }
     catch {
         Throw "Could not create table '$SchemaName'. Error: $($_.Exception.Message)"
     }
