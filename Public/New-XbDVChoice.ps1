@@ -169,6 +169,19 @@ function New-XbDVChoice {
     }
 
     $url = "$EnvironmentUrl/api/data/v9.2/GlobalOptionSetDefinitions"
+
+    # Write request to .rest file for debugging with REST Client Extension
+    $restFilePath = Join-Path $PWD "$SchemaName.rest"
+    $restContent = @()
+    $restContent += "POST $url"
+    foreach ($headerKey in $headers.Keys) {
+        $restContent += "${headerKey}: $($headers[$headerKey])"
+    }
+    $restContent += ""
+    $restContent += $jsonBody
+    $restContent -join "`n" | Out-File -FilePath $restFilePath -Encoding UTF8
+    Write-Host "REST request saved to: $restFilePath" -ForegroundColor Gray
+
     try {
         Invoke-RestMethod -Method POST -Uri $url -Headers $headers -Body $jsonBody -ErrorAction Stop
         $successMessage = "Dataverse global choice '$DisplayName' created (SchemaName: $SchemaName)"
