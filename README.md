@@ -54,7 +54,7 @@ Most functions accept an optional `-AccessToken` parameter. If not provided, the
 Install-Module -Name Az.Accounts -Scope CurrentUser
 $env="https://{yourorgname}.crm.dynamics.com"
 $token = Connect-XbDataverse -EnvironmentUrl $env
-$token | Set-Clipboard
+"`$token=`"$token`"`n`$env=`"$env"" | Set-Clipboard
 
 # Option 2: Manual authentication with Az.Accounts
 Install-Module -Name Az.Accounts -Scope CurrentUser
