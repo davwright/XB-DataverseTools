@@ -239,6 +239,22 @@ function New-XbDVColumn {
         }
     }
 
+    # Helper function to create base attribute metadata structure
+    function New-AttributeMetadata($odataType, $additionalProperties = @{}) {
+        $baseMetadata = [ordered]@{
+            "@odata.type"  = "Microsoft.Dynamics.CRM.$odataType"
+            SchemaName     = $SchemaName
+            DisplayName    = New-Label $DisplayName $DisplayNameDE
+            Description    = New-Label $Description
+            RequiredLevel  = $reqLevel
+        }
+        # Merge additional properties into base metadata
+        foreach ($key in $additionalProperties.Keys) {
+            $baseMetadata[$key] = $additionalProperties[$key]
+        }
+        return $baseMetadata
+    }
+
     # Build RequiredLevel metadata object
     $reqLevel = @{
         Value = $RequiredLevel
@@ -253,140 +269,96 @@ function New-XbDVColumn {
         "Text" {
             # Single-line field (text, max 4000 characters)
             if ($MaxLength -gt 4000) { $MaxLength = 4000 }
-            $attributeMetadata = @{
-                "@odata.type"    = "Microsoft.Dynamics.CRM.StringAttributeMetadata"
-                SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName $DisplayNameDE
-                Description      = New-Label $Description
-                RequiredLevel    = $reqLevel
-                MaxLength        = $MaxLength
-                FormatName       = @{ Value = "Text" }
-                AttributeType    = "String"
+            $attributeMetadata = New-AttributeMetadata "StringAttributeMetadata" @{
+                MaxLength     = $MaxLength
+                FormatName    = @{ Value = "Text" }
+                AttributeType = "String"
             }
         }
         "Memo" {
             # Multi-line field (memo, up to 1,048,576 characters)
             if ($MaxLength -lt 256) { $MaxLength = 1000 }
-            $attributeMetadata = @{
-                "@odata.type"    = "Microsoft.Dynamics.CRM.MemoAttributeMetadata"
-                SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName $DisplayNameDE
-                Description      = New-Label $Description
-                RequiredLevel    = $reqLevel
-                Format           = "TextArea"
-                MaxLength        = $MaxLength
-                AttributeType    = "Memo"
+            $attributeMetadata = New-AttributeMetadata "MemoAttributeMetadata" @{
+                Format        = "TextArea"
+                MaxLength     = $MaxLength
+                AttributeType = "Memo"
             }
         }
         "Integer" {
             # Whole number field (32-bit integer)
-            $attributeMetadata = @{
-                "@odata.type"    = "Microsoft.Dynamics.CRM.IntegerAttributeMetadata"
-                SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName $DisplayNameDE
-                Description      = New-Label $Description
-                RequiredLevel    = $reqLevel
-                Format           = "None"
-                MinValue         = -2147483648
-                MaxValue         = 2147483647
-                AttributeType    = "Integer"
+            $attributeMetadata = New-AttributeMetadata "IntegerAttributeMetadata" @{
+                Format        = "None"
+                MinValue      = -2147483648
+                MaxValue      = 2147483647
+                AttributeType = "Integer"
             }
         }
         "Decimal" {
             # Decimal number (floating-point with specified precision)
             if ($Precision -lt 0) { $Precision = 0 }
             if ($Precision -gt 10) { $Precision = 10 }
-            $attributeMetadata = @{
-                "@odata.type"    = "Microsoft.Dynamics.CRM.DecimalAttributeMetadata"
-                SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName $DisplayNameDE
-                Description      = New-Label $Description
-                RequiredLevel    = $reqLevel
-                MinValue         = -100000000000
-                MaxValue         = 100000000000
-                Precision        = $Precision
-                AttributeType    = "Decimal"
+            $attributeMetadata = New-AttributeMetadata "DecimalAttributeMetadata" @{
+                MinValue      = -100000000000
+                MaxValue      = 100000000000
+                Precision     = $Precision
+                AttributeType = "Decimal"
             }
         }
         "Boolean" {
             # Two-state field (yes/no)
-            $attributeMetadata = @{
-                "@odata.type"    = "Microsoft.Dynamics.CRM.BooleanAttributeMetadata"
-                SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName $DisplayNameDE
-                Description      = New-Label $Description
-                RequiredLevel    = $reqLevel
-                AttributeType    = "Boolean"
-                OptionSet        = @{
-                    TrueOption   = @{ Value = 1; Label = New-Label $TrueLabel }
-                    FalseOption  = @{ Value = 0; Label = New-Label $FalseLabel }
+            $attributeMetadata = New-AttributeMetadata "BooleanAttributeMetadata" @{
+                AttributeType = "Boolean"
+                OptionSet     = @{
+                    TrueOption    = @{ Value = 1; Label = New-Label $TrueLabel }
+                    FalseOption   = @{ Value = 0; Label = New-Label $FalseLabel }
                     OptionSetType = "Boolean"
                 }
             }
         }
         "Date" {
             # Date-only field (DateOnly behavior)
-            $attributeMetadata = @{
-                "@odata.type"    = "Microsoft.Dynamics.CRM.DateTimeAttributeMetadata"
-                SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName $DisplayNameDE
-                Description      = New-Label $Description
-                RequiredLevel    = $reqLevel
-                Format           = "DateOnly"  #Date Only
-                AttributeType    = "DateTime"
+            $attributeMetadata = New-AttributeMetadata "DateTimeAttributeMetadata" @{
+                Format        = "DateOnly"
+                AttributeType = "DateTime"
             }
         }
         "DateTime" {
             # Date and time field (UserLocal behavior)
-            $attributeMetadata = @{
-                "@odata.type"    = "Microsoft.Dynamics.CRM.DateTimeAttributeMetadata"
-                SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName $DisplayNameDE
-                Description      = New-Label $Description
-                RequiredLevel    = $reqLevel
-                Format           = "DateAndTime"  #DateAndTime
-                AttributeType    = "DateTime"
+            $attributeMetadata = New-AttributeMetadata "DateTimeAttributeMetadata" @{
+                Format        = "DateAndTime"
+                AttributeType = "DateTime"
             }
         }
         "Choice" {
             # Single-select Option Set (Picklist)
-            $attributeMetadata = @{
-                "@odata.type"    = "Microsoft.Dynamics.CRM.PicklistAttributeMetadata"
-                SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName $DisplayNameDE
-                Description      = New-Label $Description
-                RequiredLevel    = $reqLevel
-                AttributeType    = "Picklist"
+            $attributeMetadata = New-AttributeMetadata "PicklistAttributeMetadata" @{
+                AttributeType = "Picklist"
             }
             if ($GlobalOptionSetName) {
                 $globalOptionSetId = Get-GlobalOptionSetId $GlobalOptionSetName $EnvironmentUrl $AccessToken
                 $attributeMetadata["GlobalOptionSet@odata.bind"] = "/GlobalOptionSetDefinitions($globalOptionSetId)"
             }
             elseif ($Choices) {
-                $attributeMetadata["OptionSet"] = @{
-                    "@odata.type" = "Microsoft.Dynamics.CRM.OptionSetMetadata"
-                    Options       = @()
-                    OptionSetType = "Picklist"
-                }
+                $optionsList = @()
                 $value = 1
                 foreach ($choiceLabel in $Choices) {
-                    $attributeMetadata["OptionSet"]["Options"] += @{
+                    $optionsList += @{
                         Value = $value
                         Label = New-Label $choiceLabel
                     }
                     $value++
                 }
+                $attributeMetadata["OptionSet"] = @{
+                    "@odata.type" = "Microsoft.Dynamics.CRM.OptionSetMetadata"
+                    Options       = $optionsList
+                    OptionSetType = "Picklist"
+                }
             }
         }
         "MultiChoice" {
             # Multi-select Option Set (MultiSelectPicklist)
-            $attributeMetadata = @{
-                "@odata.type"    = "Microsoft.Dynamics.CRM.MultiSelectPicklistAttributeMetadata"
-                SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName $DisplayNameDE
-                Description      = New-Label $Description
-                RequiredLevel    = $reqLevel
-                AttributeType    = "Virtual"
+            $attributeMetadata = New-AttributeMetadata "MultiSelectPicklistAttributeMetadata" @{
+                AttributeType     = "Virtual"
                 AttributeTypeName = @{ Value = "MultiSelectPicklistType" }
             }
             if ($GlobalOptionSetName) {
@@ -394,18 +366,19 @@ function New-XbDVColumn {
                 $attributeMetadata["GlobalOptionSet@odata.bind"] = "/GlobalOptionSetDefinitions($globalOptionSetId)"
             }
             elseif ($Choices) {
-                $attributeMetadata["OptionSet"] = @{
-                    "@odata.type" = "Microsoft.Dynamics.CRM.OptionSetMetadata"
-                    Options       = @()
-                    OptionSetType = "Picklist"
-                }
+                $optionsList = @()
                 $value = 1
                 foreach ($choiceLabel in $Choices) {
-                    $attributeMetadata["OptionSet"]["Options"] += @{
+                    $optionsList += @{
                         Value = $value
                         Label = New-Label $choiceLabel
                     }
                     $value++
+                }
+                $attributeMetadata["OptionSet"] = @{
+                    "@odata.type" = "Microsoft.Dynamics.CRM.OptionSetMetadata"
+                    Options       = $optionsList
+                    OptionSetType = "Picklist"
                 }
             }
         }
@@ -493,27 +466,17 @@ function New-XbDVColumn {
             if (-not $Lookup -or $Lookup.Count -lt 2) {
                 Throw "Specify two entities (e.g., account and contact) in Lookup for a Customer column."
             }
-            $attributeMetadata = @{
-                "@odata.type"    = "Microsoft.Dynamics.CRM.CustomerAttributeMetadata"
-                SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName $DisplayNameDE
-                Description      = New-Label $Description
-                RequiredLevel    = $reqLevel
-                AttributeType    = "Lookup"
-                Targets          = $Lookup
+            $attributeMetadata = New-AttributeMetadata "CustomerAttributeMetadata" @{
+                AttributeType = "Lookup"
+                Targets       = $Lookup
             }
         }
         "Image" {
             # Image field for storing images
-            $attributeMetadata = @{
-                "@odata.type"    = "Microsoft.Dynamics.CRM.ImageAttributeMetadata"
-                SchemaName       = $SchemaName
-                DisplayName      = New-Label $DisplayName $DisplayNameDE
-                Description      = New-Label $Description
-                RequiredLevel    = $reqLevel
-                AttributeType    = "Virtual"
+            $attributeMetadata = New-AttributeMetadata "ImageAttributeMetadata" @{
+                AttributeType     = "Virtual"
                 AttributeTypeName = @{ Value = "ImageType" }
-                MaxSizeInKB      = $MaxSizeInKB
+                MaxSizeInKB       = $MaxSizeInKB
                 CanStoreFullImage = $CanStoreFullImage
             }
         }
